@@ -8,10 +8,11 @@
   "author": "kailoan <467364@student.saxion.nl>",
   "private": true,
   "scripts": {
+    "lint": "eslint --ext .js,.vue --ignore-path .gitignore ./",
+    "test": "echo \"No test specified\" && exit 0",
     "build": "quasar build",
     "start": "node server.js",
-    "lint": "eslint --ext .js,.vue --ignore-path .gitignore ./",
-    "test": "echo \"No test specified\" && exit 0"
+    "heroku-postbuild": "npm install --only=dev --no-shrinkwrap && npm run build"
   },
   "dependencies": {
     "@quasar/extras": "^1.8.1",
