@@ -1,6 +1,4 @@
 <template>
- <div>
-  <div class="flex-container gt-sm-sm">
     <q-page v-if="loaded" class="quiz-editor flex">
     <div class="question-listing" :class="`theme-${this.getQuiz.theme}`">
       <div class="question-listing-add">
@@ -39,49 +37,6 @@
       </div>
     </div>
     </q-page>
-  </div>
-
-  <div class="lt-sm">
-    <q-page v-if="loaded" class="quiz-editor flex">
-    <div class="question-listing-phone" :class="`theme-${this.getQuiz.theme}`">
-      <div class="question-listing-add-phone">
-        <q-btn color="white" text-color="black" style="float:left" @click="back">
-          <i class="fa fa-arrow-left" />
-        </q-btn>
-        <q-btn style="background: green; color: white; float:right" @click="addQuestion">
-          <i class="fa fa-plus" />
-        </q-btn>
-
-        <div style="clear:both"></div>
-        <div v-drag-and-drop="options">
-          <q-list @reordered="reordered($event, questions);">
-            <QuestionCard
-              v-for="question in questions"
-              :key="question.position"
-              :data-id="question.position"
-              :question="question"
-              :editMode="true"
-              @edit="loadQuestion"
-              @remove="removeQuestion"
-            ></QuestionCard>
-          </q-list>
-        </div>
-      </div>
-    </div>
-    <div class="editor-sidebar-phone">
-      <div class="editor-title">
-        <h3>{{editorTitle}}</h3>
-        <EditorGeneralBar v-if="editorTitle === 'General'" @submitQuiz="submitQuiz"></EditorGeneralBar>
-        <EditorQuestionBar
-          v-if="editorTitle === 'Question'"
-          @cancel="backToGeneral"
-          @submitQuestion="editQuestion2"
-        ></EditorQuestionBar>
-      </div>
-    </div>
-    </q-page>
-  </div>
-</div>
 </template>
 
 <script>

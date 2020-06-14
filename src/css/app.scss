@@ -54,31 +54,6 @@
   position: relative;
 }
 
-.question-listing-phone {
-  height: 49vh;
-  width: 100%;
-  overflow-y: scroll;
-  position: relative;
-}
-
-.question-listing-add-phone {
-  margin-bottom: 50px;
-  position: absolute;
-  height: 20vh;
-  width: 100%;
-}
-
-.editor-sidebar-phone {
-  height: 30vh;
-  width: 100%;
-  overflow-y: scroll;
-  padding: 2rem;
-}
-
-.flex-container {
-  flex-direction: column;
-}
-
 .editor-sidebar {
   width: 40%;
   padding: 50px;
@@ -190,4 +165,26 @@
 
 .answer-button .pre p {
   margin: 2px;
+}
+
+@media only screen and (max-width: 600px) {
+  .question-listing{
+    height: 49vh;
+    width: 100%;
+    overflow-y: scroll;
+    position: relative;
+  }
+
+  .question-listing-add {
+    margin-bottom: 50px;
+    position: relative;
+    height: 20vh;
+    width: 100%;
+  }
+
+  .editor-sidebar {
+    height: 30vh;
+    width: 100%;
+    overflow-y: scroll;
+  }
 }

@@ -3,6 +3,7 @@
     class="box shadow-1 rounded-borders col-auto q-ma-md"
     @mouseover="hover = true"
     @mouseleave="hover = false"
+    @click="hover = !hover"
   >
     <div class="row icon-center bg-box" :class="bgTheme">
       <transition name="fade">

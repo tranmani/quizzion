@@ -1,12 +1,10 @@
 <template>
-<div>
-  <div class="gt-sm">
   <q-page>
     <div class="bg" />
     <section class="section-container items-center">
       <div class="section-header shadow-3">
         <q-tabs v-model="tab" active-bg-color="secondary" indicator-color="transparent">
-          <q-tab class="panel" name="signin" label="Sign in" />
+          <q-tab class="q-tabs" name="signin" label="Sign in" />
         </q-tabs>
         <q-tab-panels v-model="tab">
           <q-tab-panel name="signin">
@@ -58,68 +56,6 @@
       </div>
     </section>
   </q-page>
-  </div>
-
-  <div>
-    <q-page>
-    <section class="section-container-phone items-center">
-      <div class="section-header-phone">
-        <q-tabs  v-model="tab" active-bg-color="secondary" indicator-color="transparent">
-          <q-tab class="q-tabs-phone" name="signin" label="Sign in" />
-        </q-tabs>
-        <q-tab-panels v-model="tab">
-          <q-tab-panel name="signin" class="panel-height-phone">
-            <div class="section-body-phone column items-center">
-              <section>
-                <h6>Username:</h6>
-                <q-input
-                  outlined
-                  dense
-                  v-model="credentials.username"
-                  bg-color="grey-4"
-                  placeholder="Username..."
-                />
-                <q-separator />
-                <h6>Password:</h6>
-                <q-input
-                  outlined
-                  dense
-                  v-model="password"
-                  bg-color="grey-4"
-                  placeholder="Password..."
-                  :type="isPwd ? 'password' : 'text'"
-                  ref="signin"
-                >
-                  <template v-slot:append>
-                    <q-icon
-                      :name="isPwd ? 'visibility_off' : 'visibility'"
-                      class="cursor-pointer"
-                      @click="isPwd = !isPwd"
-                    />
-                  </template>
-                </q-input>
-                <div class="text-body">
-                  Apply for an account?
-                  <a href>Click here!</a>
-                </div>
-              </section>
-              <section class="row justify-center">
-                <q-btn
-                  :disabled="disabledSignInBtn"
-                  @click="hashPassword();login();"
-                  rounded
-                  class="col-12 q-ma-md sign-btn-phone"
-                >Sign in</q-btn>
-              </section>
-            </div>
-          </q-tab-panel>
-        </q-tab-panels>
-      </div>
-    </section>
-  </q-page>
-  </div>
-
-</div>
 </template>
 
 <script>
@@ -202,35 +138,6 @@ export default {
   height: 100%;
 }
 
-.section-container-phone {
-  position: absolute;
-  background-color: #ffffff;
-  width: 100%;
-}
-
-.section-header-phone {
-  width: 100%;
-  color: #ffffff;
-  height: 100%;
-}
-
-.panel-height-phone{
-  height: 70vh;
-}
-
-.section-body-phone {
-  height: 100%;
-}
-
-.q-tabs-phone {
-  width: 100%;
-}
-
-.sign-btn-phone {
-  color: #ffffff;
-  background-color: $accent;
-  margin-top: 25vh;
-}
 
 .section-header {
   width: 100%;
@@ -264,10 +171,6 @@ a {
   height: 100%;
 }
 
-.panel {
-  background-color: #e6e6e6;
-}
-
 .sign-btn {
   color: #ffffff;
   background-color: $accent;
@@ -294,6 +197,38 @@ a {
 @media (max-width: 600px) {
   .section-container {
     max-width: 100%;
+  }
+}
+
+@media only screen and (max-width: 600px){
+  .section-container {
+    position: absolute;
+    background-color: #ffffff;
+    width: 100%;
+  }
+
+  .section-header {
+    width: 100%;
+    color: #ffffff;
+    height: 100%;
+  }
+
+  .panel-height{
+    height: 70vh;
+  }
+
+  .section-body{
+    height: 100%;
+  }
+
+  .q-tabs {
+    width: 100%;
+  }
+
+  .sign-btn {
+    color: #ffffff;
+    background-color: $accent;
+    margin-top: 25vh;
   }
 }
 </style>
