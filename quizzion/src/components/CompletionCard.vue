@@ -1,0 +1,318 @@
+<template>
+  <q-card class="completion-card" v-bind:class="[!this.chartDisplayed ? this.bg : 'bg-plain']">
+    <q-card-section class="card-header bg-white">
+      <div class="card-toolbar">
+        <QuizHeader v-bind:title="label" :progression="parseFloat(this.position+1) / parseFloat(this.questionHashes.length)"/>
+      </div>
+    </q-card-section>
+    <q-card-section vertical align="center">
+      <CompletionQuestionCard
+        v-on:selected="getSelectedAnswer"
+        v-if="question !== null && !this.chartDisplayed"
+        v-show="!loading"
+        :question="question"
+      />
+      <doughnut-chart v-if="this.chartDisplayed && !this.leaderboardDisplayed" :questionData="qstnData" :answerData="ansrData"></doughnut-chart>
+      <mini-leaderboard-component v-if="this.chartDisplayed && !this.leaderboardDisplayed" :titleData="ttlData" :userData="usrData" :colorData="clrData"></mini-leaderboard-component>
+    
+      <leaderboard-component v-if="this.chartDisplayed && this.leaderboardDisplayed" :userId="usrId" :titleData="ttlData" :userData="usrData" :colorData="clrData"></leaderboard-component>
+      </q-card-section>
+    <q-card-actions class="absolute-bottom" vertical align="center">
+      <q-btn
+        class="button"
+        v-show="!loading"
+        v-if="lastQuestion && this.chartDisplayed"
+        v-on:click="finish"
+        >Finsih</q-btn
+      >
+      <q-btn class="button" v-show="!loading" v-else v-on:click="next"
+        >Next</q-btn
+      >
+    </q-card-actions>
+    <q-inner-loading :showing="loading">
+      <q-spinner size="50px" color="secondary" />
+    </q-inner-loading>
+  </q-card>
+</template>
+
+<script>
+import QuizHeader from "../components/QuizHeader";
+import DoughnutChart from '../components/charts/DoughnutChart'
+import LeaderboardComponent from '../components/charts/LeaderboardComponent'
+import MiniLeaderboardComponent from '../components/charts/MiniLeaderboardComponent'
+import CompletionQuestionCard from "../components/CompletionQuestionCard";
+import QuestionRepository from "../remote/quiz/QuestionRepository";
+import AnswerRepository from "../remote/quiz/AnswerRepository";
+
+export default {
+  name: "CompletionCard",
+  props: ["label", "questionHashes"],
+  methods: {
+    getSelectedAnswer: function(value) {
+      this.selectedAnsr = value
+      this.updateSelectedAnswer(value)
+      console.log(value)
+    },
+    next: function() {
+      if (this.position >= this.questionHashes.length - 1 && this.chartDisplayed) {
+        return;
+      }
+      if (this.chartDisplayed) {
+        this.position++;
+        this.loadQuestion();
+      }
+      this.chartDisplayed = !this.chartDisplayed
+      console.log('selected answer')
+      console.log(this.selectedAnsr)
+    },
+    finish: function() {
+      if (this.leaderboardDisplayed) {  
+        this.$router.push({ path: '/dashboard' })
+      }
+      this.leaderboardDisplayed = !this.leaderboardDisplayed
+    },
+    loadQuestion: function() {
+      this.loading = true;
+      QuestionRepository.getQuestion(
+        this.questionHashes[this.position],
+        this.$store.state.authLogin.token
+      ).then(response => {
+        let data = response.data.var[0];
+        AnswerRepository.getAnswerGroup(
+          data.vogh,
+          this.$store.state.authLogin.token
+        ).then(answerGroupResponse => {
+          let answerGroupData = answerGroupResponse.data;
+          AnswerRepository.getAnswerGroupAnswers(
+            answerGroupData.varoptiongroup[0].vogh,
+            this.$store.state.authLogin.token
+          ).then(answerResponse => {
+            this.loading = false;
+            console.log(answerResponse.data.varoptiongroup);
+            this.question = {
+              title: data.label,
+              answers: answerResponse.data.varoptiongroup
+            };
+            this.checkLastQuestion();
+
+            // Doughnut chart data
+            this.qstnData.title = data.label
+            console.log(answerResponse.data.varoptiongroup)
+            let index = 0
+            this.currentAnswerGroup = answerResponse.data.varoptiongroup
+            answerResponse.data.varoptiongroup.forEach(element => {
+              this.ansrData[index].description = element.label
+              this.ansrData[index].correct = (element.weight == 1)  
+              this.ansrData[index].chosen = false
+              this.ansrData[index].results = 0
+              index++
+            });
+          });
+        });
+      });
+    },
+    updateSelectedAnswer: function(chosenAnswerName) {
+      let index = 0
+      console.log("CHOSEN ANSWER NAME")
+      console.log(chosenAnswerName)
+      this.currentAnswerGroup.forEach(element => {
+        if (element.name == chosenAnswerName) {
+          this.ansrData[index].results++
+          this.ansrData[index].chosen = true
+        } else {
+          this.ansrData[index].results = 0
+          this.ansrData[index].chosen = false
+        }
+        index++
+      });
+    },
+    checkLastQuestion: function() {
+      if (this.position == this.questionHashes.length - 1) {
+        this.lastQuestion = true;
+      } else {
+        this.lastQuestion = false;
+      }
+    }
+  },
+  components: {
+    QuizHeader,
+    CompletionQuestionCard,
+    DoughnutChart,
+    LeaderboardComponent,
+    MiniLeaderboardComponent
+  },
+  data() {
+    return {
+      currentAnswerGroup: [],
+      selectedAnsr: '',
+      chartDisplayed: false,
+      leaderboardDisplayed: false,
+      position: 0,
+      loading: true,
+      question: null,
+      lastQuestion: false,
+      bg: "bg1",
+      qstnData: {
+        title: "Is this a question?",
+        description: "Is this the detailed description of the question?"
+      },
+      ansrData: [
+        {
+          letter: "A",
+          description: "Yes",
+          results: 0,
+          color: '#D739BD',
+          correct: false,
+          chosen: false
+        },
+        {
+          letter: "B",
+          description: "No",
+          results: 0,
+          color: '#6FCF97',
+          correct: false,
+          chosen: false
+        },
+        {
+          letter: "C",
+          description: "???",
+          results: 0,
+          color: '#EB5757',
+          correct: false,
+          chosen: false
+        },
+        {
+          letter: "D",
+          description: "Maybe",
+          results: 0,
+          color: '#EBEE47',
+          correct: false,
+          chosen: false
+        }
+      ],
+      usrId: 6,
+      ttlData: "Quiz Ranking",
+      clrData: {
+        transparent: "rgb(255,255,255, 0.0)",
+
+        firstPlace: "rgb(241, 244, 58, 0.9)",
+        firstPlaceBorder: "rgb(241, 244, 58)",
+        firstPlaceText: "rgb(203, 207, 35)",
+
+        secondPlace: "rgb(196, 196, 196, 0.9)",
+        secondPlaceBorder: "rgb(196, 196, 196)",
+        secondPlaceText: "rgb(153, 153, 153)",
+
+        thirdPlace: "rgb(198, 170, 85, 0.9)",
+        thirdPlaceBorder: "rgb(198, 170, 85)",
+        thirdPlaceText: "rgb(171, 148, 79)"
+      },
+      usrData: [
+        {
+          id: 1,
+          username: this.$store.state.authLogin.user.username,//"User 1",
+          score: 100
+        },
+        {
+          id: 2,
+          username: "",
+          score: 0
+        },
+        {
+          id: 3,
+          username: "",
+          score: 0
+        }/*,
+        {
+          id: 4,
+          username: "User 4",
+          score: 60
+        },
+        {
+          id: 5,
+          username: "User 5",
+          score: 50
+        },
+        {
+          id: 6,
+          username: "User 6",
+          score: 40
+        },
+        {
+          id: 7,
+          username: "User 7",
+          score: 30
+        },
+        {
+          id: 8,
+          username: "User 8",
+          score: 20
+        },
+        {
+          id: 9,
+          username: "User 9",
+          score: 10
+        }*/
+      ]
+    };
+  },
+  mounted() {
+    this.loadQuestion();
+    let random = Math.floor(Math.random() * 7);
+    switch (random) {
+      case 0:
+        return (this.bg = "bg1");
+      case 1:
+        return (this.bg = "bg2");
+      case 2:
+        return (this.bg = "bg3");
+      case 3:
+        return (this.bg = "bg4");
+      case 4:
+        return (this.bg = "bg5");
+      case 5:
+        return (this.bg = "bg6");
+      case 6:
+        return (this.bg = "bg7");
+    }
+  }
+};
+</script>
+<style scoped>
+.completion-card {
+  background: chocolate;
+  width: 100%;
+  min-height: 90vh;
+}
+.button {
+  background: #6fcf97;
+  color: white;
+  width: 80%;
+  border-radius: 20px;
+}
+
+.bg1 {
+  background-image: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+}
+.bg2 {
+  background-image: linear-gradient(120deg, #d4fc79 0%, #96e6a1 100%);
+}
+.bg3 {
+  background-image: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+}
+.bg4 {
+  background-image: linear-gradient(120deg, #fccb90 0%, #d57eeb 100%);
+}
+.bg5 {
+  background-image: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%);
+}
+.bg6 {
+  background-image: linear-gradient(to top, #9795f0 0%, #fbc8d4 100%);
+}
+.bg7 {
+  background-image: linear-gradient(to top, #d9afd9 0%, #97d9e1 100%);
+}
+.bg-plain {
+  background-image: linear-gradient(to top, #ffffff 0%, #eeeeee 100%);
+}
+</style>

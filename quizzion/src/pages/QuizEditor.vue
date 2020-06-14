@@ -1,0 +1,672 @@
+<template>
+ <div>
+  <div class="flex-container gt-sm-sm">
+    <q-page v-if="loaded" class="quiz-editor flex">
+    <div class="question-listing" :class="`theme-${this.getQuiz.theme}`">
+      <div class="question-listing-add">
+        <q-btn color="white" text-color="black" style="float:left" @click="back">
+          <i class="fa fa-arrow-left" />
+        </q-btn>
+        <q-btn style="background: green; color: white; float:right" @click="addQuestion">
+          <i class="fa fa-plus" />
+        </q-btn>
+
+        <div style="clear:both"></div>
+        <div v-drag-and-drop="options">
+          <q-list @reordered="reordered($event, questions);">
+            <QuestionCard
+              v-for="question in questions"
+              :key="question.position"
+              :data-id="question.position"
+              :question="question"
+              :editMode="true"
+              @edit="loadQuestion"
+              @remove="removeQuestion"
+            ></QuestionCard>
+          </q-list>
+        </div>
+      </div>
+    </div>
+    <div class="editor-sidebar">
+      <div class="editor-title">
+        <h3>{{editorTitle}}</h3>
+        <EditorGeneralBar v-if="editorTitle === 'General'" @submitQuiz="submitQuiz"></EditorGeneralBar>
+        <EditorQuestionBar
+          v-if="editorTitle === 'Question'"
+          @cancel="backToGeneral"
+          @submitQuestion="editQuestion2"
+        ></EditorQuestionBar>
+      </div>
+    </div>
+    </q-page>
+  </div>
+
+  <div class="lt-sm">
+    <q-page v-if="loaded" class="quiz-editor flex">
+    <div class="question-listing-phone" :class="`theme-${this.getQuiz.theme}`">
+      <div class="question-listing-add-phone">
+        <q-btn color="white" text-color="black" style="float:left" @click="back">
+          <i class="fa fa-arrow-left" />
+        </q-btn>
+        <q-btn style="background: green; color: white; float:right" @click="addQuestion">
+          <i class="fa fa-plus" />
+        </q-btn>
+
+        <div style="clear:both"></div>
+        <div v-drag-and-drop="options">
+          <q-list @reordered="reordered($event, questions);">
+            <QuestionCard
+              v-for="question in questions"
+              :key="question.position"
+              :data-id="question.position"
+              :question="question"
+              :editMode="true"
+              @edit="loadQuestion"
+              @remove="removeQuestion"
+            ></QuestionCard>
+          </q-list>
+        </div>
+      </div>
+    </div>
+    <div class="editor-sidebar-phone">
+      <div class="editor-title">
+        <h3>{{editorTitle}}</h3>
+        <EditorGeneralBar v-if="editorTitle === 'General'" @submitQuiz="submitQuiz"></EditorGeneralBar>
+        <EditorQuestionBar
+          v-if="editorTitle === 'Question'"
+          @cancel="backToGeneral"
+          @submitQuestion="editQuestion2"
+        ></EditorQuestionBar>
+      </div>
+    </div>
+    </q-page>
+  </div>
+</div>
+</template>
+
+<script>
+import QuestionCard from "../components/QuestionCard";
+import EditorGeneralBar from "../components/EditorGeneralBar";
+import EditorQuestionBar from "../components/EditorQuestionBar";
+import QuizTemplateRepository from "../remote/quiz/QuizTemplateRepository";
+import QuizFormRepository from "../remote/quiz/QuizFormRepository";
+import AnswerRepository from "../remote/quiz/AnswerRepository";
+import QuestionRepository from "../remote/quiz/QuestionRepository";
+import { mapGetters, mapActions } from "vuex";
+
+export default {
+  components: {
+    QuestionCard,
+    EditorGeneralBar,
+    EditorQuestionBar
+  },
+  data() {
+    return {
+      count: 1,
+      editorTitle: "General",
+      newQuiz: true,
+      newQuestion: true,
+      currentQuestion: null,
+      quiz: {
+        tn: "",
+        title: "",
+        description: "",
+        timeLimit: 60,
+        theme: 1
+      },
+      options: {
+        multipleDropzonesItemsDraggingEnabled: false,
+        dropzoneSelector: ".q-list",
+        draggableSelector: ".question-card"
+      },
+      loadedTemplateHash: "",
+      currentPosition: 1,
+      questions: [],
+      loaded: false
+    };
+  },
+  computed: {
+    ...mapGetters("SingleQuizModule", ["getQuiz", "getQuestion"]),
+    ...mapGetters("authLogin", ["token"])
+  },
+  created() {
+    this.$q.loading.show();
+    this.loadedTemplateHash =
+      typeof this.$route.params.chosenTemplateHash == "undefined"
+        ? ""
+        : this.$route.params.chosenTemplateHash;
+
+    if (this.loadedTemplateHash != "") {
+      QuizTemplateRepository.getTemplate(
+        this.loadedTemplateHash,
+        this.token
+      ).then(res => {
+        this.quiz = {
+          tn: res.data.template.tn,
+          title: res.data.template.label,
+          description: res.data.template.description
+        };
+        QuizTemplateRepository.getTemplateContent(
+          this.quiz.tn,
+          this.token
+        ).then(res => {
+          const templateContent = JSON.parse(res.data.content.content);
+          var questions = templateContent.questions;
+          this.quiz.theme = templateContent.properties.theme;
+          this.quiz.timeLimit = templateContent.properties.timeLimit;
+          this.quiz.questions = questions;
+
+          this.saveQuiz(this.quiz);
+
+          if (!questions) return;
+          questions.forEach(question => {
+            QuestionRepository.getQuestion(question, this.token).then(
+              resQuest => {
+                var vogh = resQuest.data.var[0].vogh;
+                AnswerRepository.getAnswer(vogh, this.token).then(resAnswer => {
+                  var quest = {
+                    name: resQuest.data.var[0].name,
+                    hash: resQuest.data.var[0].vh,
+                    vogh: resQuest.data.var[0].vogh,
+                    label: resQuest.data.var[0].label,
+                    position: resQuest.data.var[0].position,
+                    description: "",
+                    answers: []
+                  };
+                  resAnswer.data.varoptiongroup.forEach(answer => {
+                    answer.place = this.getPositionString(answer.position);
+
+                    if (answer.value > 0) answer.isCorrect = true;
+                    else answer.isCorrect = false;
+
+                    quest.answers.push(answer);
+                  });
+
+                  this.questions.push(quest);
+                  this.currentPosition++;
+                });
+              }
+            );
+          });
+          this.loaded = true;
+          this.$q.loading.hide();
+        });
+      });
+    } else {
+      this.saveQuiz(this.quiz);
+      this.loaded = true;
+      this.$q.loading.hide();
+    }
+  },
+  methods: {
+    ...mapActions("SingleQuizModule", [
+      "saveQuiz",
+      "saveStateQuestion",
+      "emptyQuizAndQuestions"
+    ]),
+
+    loadQuestion(name) {
+      this.questions.forEach(question => {
+        if (question.name === name) {
+          this.saveStateQuestion(question);
+          this.editorTitle = "Question";
+        }
+      });
+    },
+
+    /**
+     * Add a question to the quiz.
+     */
+    addQuestion() {
+      var num = this.currentPosition++;
+      var q = {
+        label: "Add text",
+        position: num,
+        vartype: "item",
+        datatype: "varoption",
+        answers: []
+      };
+      this.saveStateQuestion(q);
+      this.questions.push(q);
+    },
+
+    /**
+     * Close the question editor and go back to the quiz editor.
+     */
+    backToGeneral() {
+      this.currentQuestion = null;
+      this.editorTitle = "General";
+    },
+
+    removeQuestion(name) {
+      var index;
+      var index2;
+      this.questions.forEach(question => {
+        if (question.name === name) {
+          this.$store.state.question = null;
+          index = this.questions.indexOf(question);
+          index2 = this.quiz.questions.indexOf(question.hash);
+          this.quiz.questions.splice(index2, 1);
+          this.editorTitle = "General";
+          QuestionRepository.deleteQuestion(question.hash, this.token).then(
+            res => {
+              this.editQuiz();
+            }
+          );
+        }
+      });
+    },
+
+    reordered(event, group) {
+      const reorderedItems = group.filter(
+        item => event.detail.ids.map(Number).indexOf(item.position) >= 0
+      );
+      const newItems = group.filter(
+        item => event.detail.ids.map(Number).indexOf(item.position) < 0
+      );
+      newItems.splice(event.detail.index, 0, ...reorderedItems);
+      this.questions = newItems;
+    },
+
+    submitQuiz() {
+      if (this.getQuiz.tn !== "") {
+        this.editQuiz();
+        return;
+      }
+
+      const quizContent = {
+        type: "quiz",
+        properties: {
+          label: "label in content property",
+          theme: this.getQuiz.theme,
+          timeLimit: this.getQuiz.timeLimit,
+          playTimes: 0,
+          averagePass: 0
+        },
+        questions: []
+      };
+
+      QuizTemplateRepository.postQuizTemplate(
+        "form_json",
+        "survey",
+        "active",
+        this.getQuiz.title,
+        this.getQuiz.description,
+        "JSON",
+        quizContent,
+        this.token
+      )
+        .then(res => {
+          this.getQuiz.tn = res.data.tn;
+          this.newQuiz = false;
+          var voghs = '{"question_hashes":[]}';
+
+          // TODO: should post quiz form first and then post question/answer
+          this.questions.forEach(question => {
+            var questionAdd = {
+              label: question.label,
+              vartype: "item",
+              datatype: "varoption",
+              isNew: true
+            };
+
+            QuizFormRepository.postQuizForm(
+              this.getQuiz.title,
+              "survey",
+              res.data.tn,
+              this.token
+            ).then(res2 => {
+              var position = this.count++;
+              var q = "question" + position;
+              // Add an answer group for a question.
+              AnswerRepository.postAnswerGroup(question.label, 1, this.token)
+                .then(res3 => {
+                  question.vogh = res3.data.vogh;
+
+                  // Add answers to a question.
+                  question.answers.forEach(answer => {
+                    if (answer.von) {
+                      this.saveAnswer(
+                        answer,
+                        position,
+                        res3.data.vogh,
+                        this.token,
+                        true
+                      );
+                    } else {
+                      this.saveAnswer(
+                        answer,
+                        position,
+                        res3.data.vogh,
+                        this.token,
+                        false
+                      );
+                    }
+                    position++;
+                  });
+
+                  questionAdd.vogh = res3.data.vogh;
+
+                  this.saveQuestion(questionAdd, res.data.tn, quizContent);
+                })
+                .catch(err => {
+                  this.$q.notify({
+                    type: "negative",
+                    message: `Failed to postAnswerGroup ${err}`
+                  });
+                });
+            });
+          });
+        })
+        .catch(err => {
+          this.$q.notify({
+            type: "negative",
+            message: `Failed to postQuizTemplate ${err}`
+          });
+        });
+    },
+
+    editQuiz() {
+      const quizContent = {
+        type: "quiz",
+        properties: {
+          theme: this.getQuiz.theme,
+          timeLimit: this.getQuiz.timeLimit
+        },
+        questions: this.quiz.questions
+      };
+
+      QuizTemplateRepository.updateTemplate(
+        this.getQuiz.tn,
+        "active",
+        this.getQuiz.title,
+        this.getQuiz.description,
+        this.token
+      )
+        .then(res => {
+          QuizTemplateRepository.updateTemplateContent(
+            this.getQuiz.tn,
+            "json",
+            quizContent,
+            this.token
+          )
+            .then(res2 => {
+              this.$q.notify({
+                type: "positive",
+                message: "Quiz updated!"
+              });
+            })
+            .catch(err => {
+              this.$q.notify({
+                type: "negative",
+                message: "Something went wrong while saving the quiz! " + err
+              });
+              console.log(err);
+            });
+        })
+        .catch(err => {
+          this.$q.notify({
+            type: "negative",
+            message: "Something went wrong while saving the quiz! " + err
+          });
+          console.log(err);
+        });
+    },
+
+    saveQuestion(question, templateNumber, quizContent) {
+      question = {
+        label: question.label,
+        vartype: question.vartype,
+        datatype: question.datatype,
+        vogh: question.vogh
+      };
+
+      QuestionRepository.postQuestion(question, this.token)
+        .then(res4 => {
+          quizContent.questions.push(res4.data.vh);
+          QuizTemplateRepository.putQuestionInQuizTemplate(
+            "json",
+            templateNumber,
+            quizContent,
+            this.token
+          )
+            .then(res => {
+              this.$q.notify({
+                type: "positive",
+                message: "questions added to quiz!"
+              });
+            })
+            .catch(err => {
+              this.$q.notify({
+                type: "negative",
+                message: "Unable to add questions to quiz!: " + err
+              });
+            });
+        })
+        .catch(err => {
+          this.$q.notify({
+            type: "negative",
+            message: "Quiz could not be created! " + err
+          });
+        });
+    },
+
+    editQuestion2() {
+      var question = this.getQuestion;
+      this.saveQuestionToList(question);
+      if (this.loadedTemplateHash != "") {
+        question = {
+          label: question.label,
+          vartype: "item",
+          datatype: "varoption",
+          position: question.position,
+          vogh: question.vogh
+        };
+
+        if (question.hash) {
+          QuestionRepository.updateQuestion(question, this.token).then(res => {
+            question.answers.forEach(answer => {
+              if (answer.isCorrect) answer.value = 5;
+              else answer.value = 0;
+              // check if answer is new
+              AnswerRepository.updateAnswer(
+                answer,
+                question.vogh,
+                this.token
+              ).then(res => {
+                this.$q.notify({
+                  type: "positive",
+                  message: "Question has been edited!"
+                });
+              });
+            });
+          });
+        }
+      } else {
+        question = {
+          label: question.label,
+          vartype: question.vartype,
+          datatype: question.datatype,
+          vogh: question.vogh,
+          answers: question.answers,
+          position: question.position
+        };
+
+        const quizContent = {
+          type: "quiz",
+          properties: {
+            theme: this.getQuiz.theme,
+            timeLimit: this.getQuiz.timeLimit
+          },
+          questions: this.quiz.questions
+        };
+
+        QuizFormRepository.postQuizForm(
+          question.label,
+          "survey",
+          this.getQuiz.tn,
+          this.token
+        ).then(res2 => {
+          var position = this.count++;
+          var q = "question" + position;
+          // Add an answer group for a question.
+          AnswerRepository.postAnswerGroup(question.label, 1, this.tokenn)
+            .then(res3 => {
+              question.vogh = res3.data.vogh;
+
+              // Add answers to a question.
+              question.answers.forEach(answer => {
+                if (answer.von) {
+                  this.saveAnswer(
+                    answer,
+                    position,
+                    res3.data.vogh,
+                    this.token,
+                    true
+                  );
+                } else {
+                  this.saveAnswer(
+                    answer,
+                    position,
+                    res3.data.vogh,
+                    this.token,
+                    false
+                  );
+                }
+                position++;
+              });
+
+              question.vogh = res3.data.vogh;
+              this.saveQuestion(
+                question,
+                this.getQuiz.tn,
+                quizContent,
+                this.token
+              );
+            })
+            .catch(err => {
+              this.$q.notify({
+                type: "negative",
+                message: err
+              });
+            });
+        });
+      }
+      this.saveQuiz(this.quiz);
+      this.editorTitle = "General";
+    },
+
+    saveQuestionToList(question) {
+      var i = 0;
+      this.questions.forEach(q => {
+        if (q.position === question.position) {
+          this.questions[i] = question;
+        }
+        i++;
+      });
+    },
+
+    editQuestion(vogh, question) {
+      QuestionRepository.updateQuestion(question, this.token)
+        .then(res => {
+          this.$q.notify({
+            type: "positive",
+            message: "Question has been edited!"
+          });
+        })
+        .catch(err => {
+          this.$q.notify({
+            type: "negative",
+            message: "Could not edit question! " + err
+          });
+        });
+    },
+
+    saveAnswer(answer, position, vogh, token, edit) {
+      var answerToAdd = {
+        name: answer.description,
+        label: answer.label,
+        position: this.getPositionNumber(answer.position)
+      };
+
+      // points for each correct answer.
+      // I just came up with these numbers randomly.
+      if (answer.isCorrect) answerToAdd.value = 5.0;
+      else answerToAdd.value = 0.0;
+
+      if (!edit) {
+        AnswerRepository.postAnswer(answerToAdd, vogh, token)
+          .then(res => {
+            this.$q.notify({
+              type: "positive",
+              message: "Answers saved!"
+            });
+          })
+          .catch(err => {
+            this.$q.notify({
+              type: "negative",
+              message: "Could not save answer! " + err
+            });
+          });
+      } else {
+        AnswerRepository.updateAnswer(answerToAdd, vogh, token)
+          .then(res => {
+            this.$q.notify({
+              type: "positive",
+              message: "Answers saved!"
+            });
+          })
+          .catch(err => {
+            this.$q.notify({
+              type: "negative",
+              message: "Could not edit answer! " + err
+            });
+          });
+      }
+    },
+
+    getPositionNumber(position) {
+      switch (position) {
+        case "A":
+          return 1;
+          break;
+        case "B":
+          return 2;
+          break;
+        case "C":
+          return 3;
+          break;
+        case "D":
+          return 4;
+          break;
+        default:
+          break;
+      }
+    },
+
+    getPositionString(position) {
+      switch (position) {
+        case 1:
+          return "A";
+          break;
+        case 2:
+          return "B";
+          break;
+        case 3:
+          return "C";
+          break;
+        case 4:
+          return "D";
+          break;
+        default:
+          break;
+      }
+    },
+
+    back() {
+      this.$router.push({ path: "/dashboard" });
+      this.emptyQuizAndQuestions();
+    }
+  }
+};
+</script>
