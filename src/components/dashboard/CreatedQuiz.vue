@@ -95,6 +95,13 @@ export default {
     }
   },
   methods: {
+    onResize(){
+      if(window.innerWidth < 600){
+        this.hover = true
+      } else {
+        this.hover = false
+      }
+    },
     formatNumber(num) {
       return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1 ");
     },
@@ -141,7 +148,14 @@ export default {
         props: { chosenTemplateHash: this.tn }
       });
     }
-  }
+  },
+  created() {
+    window.addEventListener('resize', this.onResize)
+  },
+
+  beforeDestroy() {
+    window.removeEventListener('resize', this.onResize)
+  },
 };
 </script>
 
