@@ -13,6 +13,7 @@
           :key="quiz.id"
           v-bind="quiz"
           v-on:delete="deleteTemplate"
+          v-on:createRoom="createRoom"
         />
       </div>
     </div>
@@ -25,6 +26,8 @@ import CreatedQuizSkeleton from "../components/dashboard/CreatedQuizSkeleton";
 import SubHeader from "../components/SubHeader";
 import QuizTemplateRepository from "../remote/quiz/QuizTemplateRepository";
 import QuizFormRepository from "../remote/quiz/QuizFormRepository";
+import Authenticator from "../remote/user/Authenticator";
+import io from "socket.io-client";
 
 export default {
   components: {
@@ -34,7 +37,8 @@ export default {
   },
   data() {
     return {
-      quizzesForDisplay: []
+      quizzesForDisplay: [],
+      socket: null
     };
   },
   computed: {
@@ -44,14 +48,41 @@ export default {
       "sortState",
       "availableTn"
     ]),
-    ...mapGetters("authLogin", ["token"])
+    ...mapGetters("authLogin", ["token", "user"])
   },
   created() {
     if (!this.dashboardLoaded) {
       this.quizzesForDisplay = [];
       this.getAllForms();
     }
+    if (Object.keys(this.user).length === 0) {
+      this.getUser(this.token);
+    }
     this.sortQuizzes(this.sortState);
+    this.socket = io("http://localhost:3000", {
+      autoConnect: false
+    });
+  },
+  mounted() {
+    this.socket.on("create_room_response", response => {
+      console.log(response);
+
+      const code = response.code;
+
+      if (code == undefined) {
+        return;
+      }
+
+      this.$router.push({
+        name: "waitingroom",
+        params: {
+          inviteCode: code,
+          title: this.title,
+          formHash: this.fh,
+          socket: this.socket
+        }
+      });
+    });
   },
   methods: {
     ...mapActions("quizzes", [
@@ -61,6 +92,7 @@ export default {
       "deleteQuiz",
       "setLoaded"
     ]),
+    ...mapActions("authLogin", ["attemptUser"]),
     sortQuizzes(sortType) {
       if (sortType === "playTimesAsc") {
         this.quizzesForDisplay = [...this.quizzes].sort(
@@ -98,7 +130,8 @@ export default {
               theme: quizContent.properties.theme || 1,
               playTimes: quizContent.properties.playTimes || 0,
               averagePass: quizContent.properties.averagePass || 0,
-              questions: quizContent.questions
+              questions: quizContent.questions,
+              timeLimit: quizContent.properties.timeLimit || 0
             };
             this.updateQuiz(quizData);
             contentProcessed++;
@@ -238,6 +271,38 @@ export default {
             message: `Failed to create new template`
           });
         });
+    },
+    getUser(token, uh) {
+      Authenticator.getUserByToken(token)
+        .then(response => {
+          this.attemptUser(response.data.user);
+        })
+        .catch(error => {
+          this.$q.notify({
+            icon: "error",
+            color: "negative",
+            message: "Failed to get user data"
+          });
+        });
+    },
+    createRoom(fh, title, timeLimit) {
+      if (fh == undefined || this.user.uh == undefined) {
+        console.log("form hash or user hash is undefined");
+        return;
+      }
+
+      if (title == undefined || timeLimit == undefined) {
+        console.log("Time limit or title is undefined");
+        return;
+      }
+      this.socket.open();
+
+      this.socket.emit("createRoomRequest", {
+        title: title,
+        userHash: this.user.uh,
+        formHash: fh,
+        duration: timeLimit
+      });
     }
   }
 };

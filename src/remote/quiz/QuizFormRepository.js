@@ -47,10 +47,10 @@ export default {
             headers: { 'X-CSRFToken': xcsrfToken }
         })
     },
-    getQuizFormBulkData(formHash, questionHash, xcsrfToken) {
+    getQuizFormBulkData(formHash, questionName, xcsrfToken) {
         return AxiosClient({
             method: 'get',
-            url: `/v51/data/bulk?vars[]=sur_serial&vars[]=frm_progress&vars[]=email&vars[]=frm_date&vars[]=${questionHash}&forms=${formHash}`,
+            url: `/v51/data/bulk?vars[]=sur_serial&vars[]=frm_progress&vars[]=email&vars[]=frm_date&vars[]=${questionName}&forms=${formHash}`,
             headers: { 'X-CSRFToken': xcsrfToken }
         })
     }

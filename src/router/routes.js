@@ -88,7 +88,7 @@ const routes = [{
     }
   },
   {
-    path: '/statisticoverview/:chosenTemplateHash?',
+    path: '/statisticoverview/:chosenTemplateHash?/:chosenFormHash?',
     name: 'statisticoverview',
     component: () => import('pages/StatisticOverview.vue'),
     meta: {

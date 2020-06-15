@@ -70,16 +70,18 @@ export default {
     return {
       inviteCode: "",
       disabledBtn: true,
-      socket: {},
-      roomTitle: ""
+      roomTitle: "",
+      openSocket: false,
+      socket: null
     };
   },
   computed: {
-    ...mapGetters("authLogin", ["user", "token"])
+    ...mapGetters("authLogin", ["token"])
   },
   mounted() {
-    this.socket = io("http://localhost:3000");
-
+    this.socket = io("http://localhost:3000", {
+      autoConnect: false
+    });
     this.socket.on("join_room_response", response => {
       if (!response.user) {
         this.errorDialog(response.error);
@@ -125,6 +127,7 @@ export default {
     ...mapActions("authLogin", ["attemptUser", "attemptToken"]),
     goToQuizz() {
       if (!this.disabledBtn) {
+        this.socket.open();
         this.socket.emit("joinRoomRequest", { code: this.inviteCode });
       }
     },

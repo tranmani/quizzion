@@ -4,9 +4,11 @@
       v-if="questionHashes != null && questionHashes.length > 0"
       v-bind:label="label"
       v-bind:questionHashes="questionHashes"
+      v-bind:formHash="formHash"
     />
 
     <Error v-if="questionHashes != null && questionHashes.length == 0" errorCode='404' errorText='No questions associated with quiz'/>
+
   </q-page>
 </template>
 
@@ -14,7 +16,10 @@
 import StatisticOverviewCard from "../components/StatisticOverviewCard";
 import Error from "../components/helpers/Error";
 import QuizTemplateRepository from "../remote/quiz/QuizTemplateRepository";
+import QuizFormRepository from "../remote/quiz/QuizFormRepository";
+import QuestionRepository from "../remote/quiz/QuestionRepository";
 import Highcharts from 'highcharts'
+
 
 export default {
   name: "StatisticOverviewQuiz",
@@ -22,7 +27,8 @@ export default {
     return {
       label: "",
       tn: typeof this.$route.params.chosenTemplateHash == 'undefined' ?  "" : this.$route.params.chosenTemplateHash,
-      questionHashes: null
+      formHash: typeof this.$route.params.chosenFormHash == 'undefined' ?  "" : this.$route.params.chosenFormHash,
+      questionHashes: null,
     };
   },
   components: {
@@ -52,7 +58,6 @@ export default {
           questionHashes = []
         }
         this.questionHashes = questionHashes;
-        console.log(questionHashes);
       });
     }
   },

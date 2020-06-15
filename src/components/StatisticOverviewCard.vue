@@ -46,10 +46,16 @@ import QuizHeader from "../components/QuizHeader";
 import DoughnutChart from '../components/charts/DoughnutChart'
 import QuestionRepository from "../remote/quiz/QuestionRepository";
 import AnswerRepository from "../remote/quiz/AnswerRepository";
+import QuizFormRepository from "../remote/quiz/QuizFormRepository";
 
 export default {
   name: "CompletionCard",
-  props: ["label", "questionHashes"],
+  data() {
+    return {
+      bulkParticipationData: []
+    };
+  },
+  props: ["label", "questionHashes", "formHash"],
   methods: {
     next: function() {
       if (this.position >= this.questionHashes.length - 1) {
@@ -115,6 +121,17 @@ export default {
             });
           });
         });
+
+        // bulk data
+        QuizFormRepository.getQuizFormBulkData(
+          this.formHash,
+          response.data.var[0].name,
+          this.$store.state.authLogin.token
+        ).then(response => {
+          this.bulkParticipationData = response.data;
+          console.log("BULK DATA: " + this.bulkParticipationData)
+          console.log(this.bulkParticipationData.list)
+        });  
       });
     },
     checkLastQuestion: function() {

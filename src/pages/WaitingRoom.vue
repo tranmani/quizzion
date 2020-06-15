@@ -3,7 +3,7 @@
     <WaitingQuizCard v-bind:title="title" />
 
     <q-drawer show-if-above side="right" bordered>
-      <InvitationView v-if="modPage" v-bind:code="code" />
+      <InvitationView v-if="modPage" v-bind:code="inviteCode" />
       <div class="title text-h8">Participants</div>
       <q-separator />
       <q-scroll-area class="user-list">
@@ -47,7 +47,7 @@ export default {
     WaitingQuizCard,
     InvitationView
   },
-  props: ["title", "formHash", "code", "socket"],
+  props: ["title", "formHash", "inviteCode", "socket"],
   data() {
     return {
       modPage: false,
@@ -64,9 +64,9 @@ export default {
   mounted() {
     this.title = this.$route.params.title;
     this.formHash = this.$route.params.formHash;
-    this.code = this.$route.params.code;
+    this.inviteCode = this.$route.params.inviteCode;
     this.socket = this.$route.params.socket;
-    this.modPage = this.code != undefined;
+    this.modPage = this.inviteCode != undefined;
   },
   created() {
     if (this.socket == undefined) return;
@@ -74,6 +74,7 @@ export default {
     this.socket.on("user_data_response", response => {
       let users = response.users;
       this.participants = users;
+      console.log(users);
     });
   }
 };

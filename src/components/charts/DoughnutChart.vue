@@ -73,7 +73,7 @@
 }
 #title {
   text-align:center;
-  font-size: 2.5em;
+  font-size: 1.25em;
 }
 #correct {
   float: left;

@@ -3,7 +3,6 @@
     class="box shadow-1 rounded-borders col-auto q-ma-md"
     @mouseover="hover = true"
     @mouseleave="hover = false"
-    @click="createQuizSession"
   >
     <div class="row icon-center bg-box" :class="bgTheme">
       <transition name="fade">
@@ -20,7 +19,7 @@
         </div>
       </transition>
     </div>
-    <div class="info">
+    <div class="info cursor-pointer" @click="createQuizSession">
       <p class="center title q-pt-xs">{{ title | truncate(26, "...") }}</p>
       <p class="float-left q-pl-sm">{{ averagePass }}% Avg.</p>
       <p class="float-right q-pr-sm">{{ formatNumber(playTimes) }} Plays</p>
@@ -59,6 +58,9 @@ export default {
     fh: {
       required: true
     },
+    timeLimit: {
+      required: true
+    },
     inviteCode: {},
     theme: {
       type: Number,
@@ -66,18 +68,17 @@ export default {
       default: 1
     }
   },
-  mounted() {},
   computed: {
-    bgTheme: function() {
+    bgTheme() {
       let theme;
-      if (this.theme == 1) theme = "bg1";
-      if (this.theme == 2) theme = "bg2";
-      if (this.theme == 3) theme = "bg3";
-      if (this.theme == 4) theme = "bg4";
-      if (this.theme == 5) theme = "bg5";
+      if (this.theme == 1) theme = "theme-1";
+      if (this.theme == 2) theme = "theme-2";
+      if (this.theme == 3) theme = "theme-3";
+      if (this.theme == 4) theme = "theme-4";
+      if (this.theme == 5) theme = "theme-5";
       return theme;
     },
-    ...mapGetters("authLogin", ["token", "user"])
+    ...mapGetters("authLogin", ["token"])
   },
   data() {
     return {
@@ -87,7 +88,7 @@ export default {
     };
   },
   filters: {
-    truncate: function(text, length, suffix) {
+    truncate(text, length, suffix) {
       if (text.length > length) {
         return text.substring(0, length) + suffix;
       } else {
@@ -96,11 +97,11 @@ export default {
     }
   },
   methods: {
-    onResize(){
-      if(window.innerWidth < 600){
-        this.hover = true
+    onResize() {
+      if (window.innerWidth < 600) {
+        this.hover = true;
       } else {
-        this.hover = false
+        this.hover = false;
       }
     },
     formatNumber(num) {
@@ -141,8 +142,12 @@ export default {
         });
     },
     goToQuizz() {
-      this.$router.push({ path: "/statisticoverview/" + this.tn,
-        props: { chosenTemplateHash: this.tn }
+      this.$router.push({
+        path: "/statisticoverview/" + this.tn + "/" + this.fh,
+        props: {
+          chosenTemplateHash: this.tn,
+          chosenFormHash: this.fh
+        }
       });
     },
     goToEditQuizz() {
@@ -151,28 +156,17 @@ export default {
       });
     },
     createQuizSession() {
-      this.hover = !this.hover
-
-      if (this.fh == undefined) {
-        return;
-      }
-
-      console.log("USER HASH: ", this.user.uh);
-
-      // this.socket.emit("createRoomRequest", {
-      //   userHash: "7c580508c0e26ecac801ee4a42da6204",
-      //   formHash: this.fh
-      // });
+      this.$emit("createRoom", this.fh, this.title, this.timeLimit);
     }
   },
   created() {
-    window.addEventListener('resize', this.onResize)
-    this.width = window.innerWidth
+    window.addEventListener("resize", this.onResize);
+    this.width = window.innerWidth;
   },
-
   beforeDestroy() {
-    window.removeEventListener('resize', this.onResize)
+    window.removeEventListener("resize", this.onResize);
   },
+  mounted() {}
 };
 </script>
 
@@ -186,21 +180,6 @@ export default {
 .bg-box {
   width: 100%;
   height: 50px;
-}
-.bg1 {
-  background-image: linear-gradient(0deg, #08aeea 0%, #2af598 100%);
-}
-.bg2 {
-  background-image: linear-gradient(147deg, #ffe53b 0%, #ff2525 74%);
-}
-.bg3 {
-  background-image: linear-gradient(19deg, #21d4fd 0%, #b721ff 100%);
-}
-.bg4 {
-  background-image: linear-gradient(19deg, #faaca8 0%, #ddd6f3 100%);
-}
-.bg5 {
-  background-image: linear-gradient(90deg, #fee140 0%, #fa709a 100%);
 }
 .info {
   width: 100%;
@@ -227,12 +206,8 @@ p {
 .fade-leave-active {
   transition: opacity 0.6s;
 }
-.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+.fade-enter,
+.fade-leave-to {
   opacity: 0;
-}
-a,
-a:hover,
-a:visited {
-  color: black;
 }
 </style>
