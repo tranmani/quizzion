@@ -4,6 +4,7 @@
       v-if="questionHashes != null"
       v-bind:label="label"
       v-bind:questionHashes="questionHashes"
+      v-bind:theme="theme"
     />
   </q-page>
 </template>
@@ -16,8 +17,9 @@ export default {
   data() {
     return {
       label: "",
-      tn: "z4h27ymjs",
-      questionHashes: null
+      tn: "47sh6yh7m",
+      questionHashes: null,
+      theme: 1
     };
   },
   components: {
@@ -42,6 +44,7 @@ export default {
         let data = response.data;
         let content = data.content.content;
         let questionHashes = JSON.parse(content).questions
+        this.theme = JSON.parse(content).properties.theme
         this.questionHashes = questionHashes;
         console.log(questionHashes);
       });

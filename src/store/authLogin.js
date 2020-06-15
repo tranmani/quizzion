@@ -9,7 +9,7 @@ export default {
 
   state: {
     token: window.sessionStorage.getItem('token'),
-    user: window.sessionStorage.getItem('user') // {}
+    user: {}//window.sessionStorage.getItem('user')
   },
 
   mutations: {

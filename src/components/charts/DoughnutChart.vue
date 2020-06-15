@@ -163,7 +163,8 @@ export default {
       )
       return ansrData
     },
-    createNewChart () {      
+    createNewChart () {     
+      window.Highcharts = Highcharts 
       Highcharts.chart('chart-area', {
         chart: {
           plotBackgroundColor: null,

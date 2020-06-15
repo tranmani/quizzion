@@ -1,5 +1,5 @@
 <template>
-  <q-card class="completion-card" v-bind:class="[!this.chartDisplayed ? this.bg : 'bg-plain']">
+  <q-card class="completion-card" v-bind:class="[!this.chartDisplayed ? 'theme-'+this.theme : 'bg-plain']">
     <q-card-section class="card-header bg-white">
       <div class="card-toolbar">
         <QuizHeader v-bind:title="label" :timer="true" :progression="parseFloat(this.position+1) / parseFloat(this.questionHashes.length)"/>
@@ -50,7 +50,7 @@ import AnswerRepository from "../remote/quiz/AnswerRepository";
 
 export default {
   name: "CompletionCard",
-  props: ["label", "questionHashes"],
+  props: ["label", "questionHashes", "theme"],
   methods: {
     getSelectedAnswer: function(value) {
       this.selectedAnsr = value
@@ -156,7 +156,7 @@ export default {
       loading: true,
       question: null,
       lastQuestion: false,
-      bg: "bg1",
+      bg: 1,
       qstnData: {
         title: "Is this a question?",
         description: "Is this the detailed description of the question?"
@@ -263,31 +263,13 @@ export default {
   },
   mounted() {
     this.loadQuestion();
-    let random = Math.floor(Math.random() * 7);
-    switch (random) {
-      case 0:
-        return (this.bg = "bg1");
-      case 1:
-        return (this.bg = "bg2");
-      case 2:
-        return (this.bg = "bg3");
-      case 3:
-        return (this.bg = "bg4");
-      case 4:
-        return (this.bg = "bg5");
-      case 5:
-        return (this.bg = "bg6");
-      case 6:
-        return (this.bg = "bg7");
-    }
   }
 };
 </script>
-<style scoped>
+<style lang="scss" scoped>
 .completion-card {
-  background: chocolate;
   width: 100%;
-  min-height: calc(100vh - 50px);
+  min-height: $height-without-header;
 }
 
 .button {
@@ -297,27 +279,6 @@ export default {
   border-radius: 20px;
 }
 
-.bg1 {
-  background-image: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
-}
-.bg2 {
-  background-image: linear-gradient(120deg, #d4fc79 0%, #96e6a1 100%);
-}
-.bg3 {
-  background-image: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
-}
-.bg4 {
-  background-image: linear-gradient(120deg, #fccb90 0%, #d57eeb 100%);
-}
-.bg5 {
-  background-image: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%);
-}
-.bg6 {
-  background-image: linear-gradient(to top, #9795f0 0%, #fbc8d4 100%);
-}
-.bg7 {
-  background-image: linear-gradient(to top, #d9afd9 0%, #97d9e1 100%);
-}
 .bg-plain {
   background-image: linear-gradient(to top, #ffffff 0%, #eeeeee 100%);
 }

@@ -1,12 +1,12 @@
 <template>
   <q-page class="flex flex-center">
     <StatisticOverviewCard
-      v-if="questionHashes.length > 0"
+      v-if="questionHashes != null && questionHashes.length > 0"
       v-bind:label="label"
       v-bind:questionHashes="questionHashes"
     />
 
-    <Error v-if="questionHashes.length == 0" errorCode='404' errorText='No questions associated with quiz'/>
+    <Error v-if="questionHashes != null && questionHashes.length == 0" errorCode='404' errorText='No questions associated with quiz'/>
   </q-page>
 </template>
 
@@ -14,6 +14,8 @@
 import StatisticOverviewCard from "../components/StatisticOverviewCard";
 import Error from "../components/helpers/Error";
 import QuizTemplateRepository from "../remote/quiz/QuizTemplateRepository";
+import Highcharts from 'highcharts'
+
 export default {
   name: "StatisticOverviewQuiz",
   data() {
