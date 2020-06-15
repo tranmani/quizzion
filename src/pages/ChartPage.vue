@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import DoughnutChart from '../components/charts/DoughnutChart'
+import DoughnutChart from '../components/charts/DoughnutChart';
 import AnswerRepository from '../remote/quiz/AnswerRepository';
 import QuestionRepository from '../remote/quiz/QuestionRepository';
 import QuizFormRepository from '../remote/quiz/QuizFormRepository';
@@ -15,7 +15,7 @@ import QuizTemplateRepository from '../remote/quiz/QuizTemplateRepository';
 export default {
   name: 'ChartPage',
   components: {
-    DoughnutChart,
+    DoughnutChart
   },
   data () {
     return {

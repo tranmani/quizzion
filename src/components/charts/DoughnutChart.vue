@@ -3,10 +3,10 @@
         <div id="title">{{ questionData.title }}</div>
         <q-card-section id="container">
             <!-- inefficient with two loops but couldn't optimize properly -->
-            <div>
+            <div v-if="!overview">
               <div id="correct">
                 <b>Correct</b>
-                <div v-for="answer in this.answerData" :key="answer" style="display: inline">
+                <div v-for="(answer, idx) in this.answerData" :key="idx" style="display: inline">
                   <div v-if="answer.correct">
                     <div v-bind:style="{'backgroundColor': answer.color}" class="circle">{{ answer.letter }}</div>
                   </div>
@@ -15,7 +15,7 @@
 
               <div id="chosen">
                 <b>Chosen</b> 
-                <div v-for="answer in this.answerData" :key="answer" style="display: inline">
+                <div v-for="(answer, idx) in this.answerData" :key="idx" style="display: inline">
                   <div v-if="answer.chosen">
                     <div v-bind:style="{'backgroundColor': answer.color}" class="circle">{{ answer.letter }}</div>
                   </div>
@@ -25,7 +25,7 @@
             
             <div class="container">
               <div id="answer-list">
-                <q-item v-for="answer in answerData" :key="answer" class="q-my-sm" clickable v-ripple>
+                <q-item v-for="(answer, idx) in answerData" :key="idx" class="q-my-sm" clickable v-ripple>
                   <q-item-section avatar>
                     <q-avatar
                       v-bind:style="[answer.chosen ? {backgroundColor: answer.color} : {backgroundColor: answer.color}]">
@@ -50,7 +50,7 @@
               </div>
 
               <div id="doughnut">
-                <canvas id="doughnut-chart"></canvas>
+                <div id="chart-area"></div>
               </div>
             </div>          
         </q-card-section>
@@ -59,7 +59,7 @@
 
 <style scoped>
 .card-container {
-  height: 100vh;
+  height: 80vh;
 }
 .circle {
   width: 1.5em;
@@ -95,12 +95,39 @@
 #doughnut {
   float: right;
   width: 70%;
-  padding-right: 0%;
+  top: 0;
 }
+
+@media only screen and (max-width: 600px) {
+  #correct {
+    float: left;
+    padding-left: 20%;
+    color: #666666;
+    padding-bottom: 5%;
+  }
+  #chosen {
+    float: right;
+    padding-right: 20%;
+    color: #666666;
+    padding-bottom: 5%;
+  }
+  #answer-list {
+    float: left;
+    width: 40%;
+    padding-left: 0%;
+  }
+  #doughnut {
+    float: right;
+    width: 60%;
+    top: 0;
+  }
+}
+
 </style>
 
 <script>
-import Chart from 'chart.js'
+import Highcharts from 'highcharts'
+
 export default {
   data () {
     return {
@@ -109,40 +136,96 @@ export default {
     }
   },
   mounted () {
-    this.createChart('doughnut-chart')
+    this.createNewChart()
   },
-  props: ['questionData', 'answerData'],
+  props: ['questionData', 'answerData', 'overview'],
   methods: {
-    createChart (chartId) {
-      const ctx = document.getElementById(chartId)
-      const myChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: [this.answerData[0].letter, this.answerData[1].letter, this.answerData[2].letter, this.answerData[3].letter],
-          datasets: [
-            {
-              label: 'People answered',
-              backgroundColor: [this.answerData[0].color, this.answerData[1].color, this.answerData[2].color, this.answerData[3].color],
-              data: [this.answerData[0].results, this.answerData[1].results, this.answerData[2].results, this.answerData[3].results],
-              label: [this.answerData[0].results, this.answerData[1].results, this.answerData[2].results, this.answerData[3].results]
-            }
-          ]
-        },
-        options: {
-            responsive: true,
-            title: {
-                display: false,
-            },
-            legend: {
-                display: false,
-            },
-            animation: {
-                animateScale: true,
-                animateRotate: true
-            }
-        }
+    getTotalAnswerAmount() {
+      var sum = 0
+      this.answerData.forEach(answer => {
+        sum += answer.results
+      });
+      return sum;
+    },
+    getFittingAnswerData() {
+      var ansrData = []
+      this.answerData.forEach(answer => {
+        ansrData.push([answer.description, answer.results])
       })
-      return myChart
+      ansrData.push(
+        {
+          name: 'Other',
+          y: 0,
+          dataLabels: {
+            enabled: false
+          }
+        }
+      )
+      return ansrData
+    },
+    createNewChart () {      
+      Highcharts.chart('chart-area', {
+        chart: {
+          plotBackgroundColor: null,
+          plotBorderWidth: null,
+          plotShadow: false,
+          backgroundColor: 'rgba(0,0,0,0)',
+          spacingTop: 0,
+          spacingRight: 0,
+          spacingBottom: 0,
+          spacingLeft: 0,
+          plotBorderWidth: 0,
+          marginRight: 0,//-60, //this does move the chart but you'll need to recompute it
+          marginLeft: 0,//-60,  //whenever the page changes width
+          marginTop: 0,
+          marginBottom: 0
+        },
+        exporting: {
+            enabled: false
+        },
+        title: {
+          text: this.getTotalAnswerAmount() + '<br> total answers',
+          align: 'center',
+          verticalAlign: 'middle',
+          y: 0
+        },
+        tooltip: {
+          pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+        },
+        accessibility: {
+          point: {
+            valueSuffix: '%'
+          }
+        },
+        credits: {
+          enabled: false
+        },
+        plotOptions: {
+          pie: {
+            colors: [ this.answerData[0].color, this.answerData[1].color, this.answerData[2].color, this.answerData[3].color],
+            allowPointSelect: true,
+            cursor: 'pointer',
+            size: '100%',
+            dataLabels: {
+              enabled: false,
+              distance: -50,
+              style: {
+              fontWeight: 'bold',
+              color: 'white'
+              }
+            },
+            showInLegend: false,
+            startAngle: -90,
+            endAngle: 90
+          }
+        },
+        series: [{
+          type: 'pie',
+          name: this.questionData.title,
+          innerSize: '70%',
+          data: this.getFittingAnswerData()
+        }]
+      });
     }
   }
 }

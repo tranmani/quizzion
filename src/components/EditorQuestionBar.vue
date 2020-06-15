@@ -9,15 +9,6 @@
         lazy-rules
         :rules="[ val => val && val.length > 0 || 'Please type something']"
       />
-      <!--
-        <q-input
-            filled
-            type="textarea"
-            v-model="question.description"
-            label="Description"
-            lazy-rules
-            :rules="[ val => val && val.length > 0 || 'Please type something']"
-      />-->
       <div class="row" v-drag-and-drop="options">
         <q-list class="question-answer-listing" @reordered="reordered($event, question.answers);">
           <q-item
@@ -30,7 +21,7 @@
             <div
               class="list-item"
               v-bind:class="{correct: item.isCorrect}"
-            >{{item.place}}) {{item.label}}</div>
+            >{{item.position}}) {{item.label}}</div>
           </q-item>
         </q-list>
       </div>
@@ -55,6 +46,7 @@ export default {
   },
   data() {
     return {
+      question: {},
       options: {
         multipleDropzonesItemsDraggingEnabled: false,
         dropzoneSelector: ".q-list",
@@ -70,25 +62,27 @@ export default {
     };
   },
   created() {
-    this.question = this.getQuestion;
-    console.log("question: ", this.getQuestion);
+    this.question = Object.assign({}, this.question, this.getQuestion);
+    this.question.answers.sort((a, b) => (a.position > b.position) ? 1 : -1)
+    this.currentPlace = this.getPositionString(this.question.answers.length+1);
+    console.log("current place is ", this.currentPlace);
   },
   methods: {
-    ...mapActions("SingleQuizModule", ["saveQuestion"]),
+    ...mapActions("SingleQuizModule", ["saveStateQuestion"]),
     submit() {
-      this.saveQuestion(this.question);
+      this.saveStateQuestion(this.question);
       this.$emit("submitQuestion");
     },
 
     reordered(event, group) {
       const reorderedItems = group.filter(
-        item => event.detail.ids.map(String).indexOf(item.place) >= 0
+        item => event.detail.ids.map(String).indexOf(item.position) >= 0
       );
 
       var originalPosition = this.question.answers.indexOf(reorderedItems[0]);
 
       const newItems = group.filter(
-        item => event.detail.ids.map(String).indexOf(item.place) < 0
+        item => event.detail.ids.map(String).indexOf(item.position) < 0
       );
 
       // create temp storaga for the dragged item.
@@ -96,10 +90,10 @@ export default {
       // create temp storage for the item to be swapped.
       var temp2 = this.question.answers[event.detail.index];
       // create temp storage for temp2's place.
-      var place = temp2.place;
+      var position = temp2.position;
       // swap the places.
-      temp2.place = temp.place;
-      temp.place = place;
+      temp2.position = temp.position;
+      temp.position = position;
       // save stored and swaped items into array.
       this.question.answers[originalPosition] = temp2;
       this.question.answers[event.detail.index] = temp;
@@ -122,40 +116,50 @@ export default {
     },
 
     saveAnswer() {
-      if (!this.editAnswer) {
-        if (
-          this.question.answers.length < 4 &&
-          this.question.answers.length > 0
-        ) {
+      if (!this.editingAnswer) {
+        if (this.question.answers.length < 4 
+            && this.question.answers.length > 0) {
           this.incrementPlace();
-          this.toEditAnswer.place = this.currentPlace;
+          this.toEditAnswer.position = this.currentPlace;
           this.question.answers.push(this.toEditAnswer);
-          this.toEditAnswer = {
-            place: "",
-            description: "",
-            isCorrect: false
-          };
         } else if (this.question.answers.length === 0) {
-          this.toEditAnswer.place = this.currentPlace;
+          this.toEditAnswer.position = this.currentPlace;
           this.question.answers.push(this.toEditAnswer);
-          this.toEditAnswer = {
-            place: "",
-            description: "",
-            isCorrect: false
-          };
         } else if (this.question.answers.length === 4) {
           this.showErrorAlert("Question limit reached!");
         }
       } else {
         this.editingAnswer = false;
-        this.toEditAnswer.place = this.currentPlace;
-        this.incrementPlace();
-        this.question.answers.push(this.toEditAnswer);
-        this.toEditAnswer = {
-          place: "",
-          description: "",
-          isCorrect: false
-        };
+        this.question.answers.forEach(element => {
+          if(element.position === this.editAnswer.position) {
+            const index = this.question.answers.indexOf(element)
+            this.question.answers[index] = this.toEditAnswer;
+          }
+        });
+      }
+      this.toEditAnswer = {
+        position: "",
+        description: "",
+        isCorrect: false
+      };
+    },
+
+    getPositionString(position) {
+      switch (position) {
+        case 1:
+          return "A";
+          break;
+        case 2:
+          return "B";
+          break;
+        case 3:
+          return "C";
+          break;
+        case 4:
+          return "D";
+          break;
+        default:
+          break;
       }
     },
 

@@ -4,7 +4,6 @@ const endpoint = '/v51/var';
 
 export default {
     postQuestion(question, xcsrfToken) {
-        console.log("asdfdasfasdfdasf:",question);
         return AxiosClient({
             method: 'post',
             url: `${endpoint}`,
@@ -30,7 +29,7 @@ export default {
         console.log("got question: ", question);
         return AxiosClient({
             method: 'put',
-            url: `${endpoint}/${question.hash}`,
+            url: `${endpoint}/${question.vh}`,
             data: {
                 label: question.label,
                 position: question.position

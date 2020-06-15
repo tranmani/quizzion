@@ -4,8 +4,7 @@
       <q-header elevated class="row justify-center text-grey bg-white">
         <q-toolbar>
           <q-toolbar-title class="title">
-            Quizzi
-            <span style="color: #F2994A">O</span>n 2.0
+            Quizzi<span style="color: #F2994A">O</span>n 2.0
           </q-toolbar-title>
 
           <q-tabs
@@ -16,8 +15,8 @@
             indicator-color="primary"
             v-if="typeof this.$store.state.authLogin == 'undefined' || this.$store.state.authLogin.token == null"
           >
-            <q-route-tab to="join" label="Join" />
-            <q-route-tab to="signin" label="Sign in" />
+            <q-route-tab to="/" label="Join" />
+            <q-route-tab to="/signin" label="Sign in" />
           </q-tabs>
           <q-tabs
             shrink
@@ -27,9 +26,9 @@
             indicator-color="primary"
             v-else
           >
-            <q-route-tab to="dashboard" label="Dashboard" />
-            <q-route-tab to="profile" label="Profile" />
-            <q-route-tab to="logout" label="Log out" />
+            <q-route-tab to="/dashboard" label="Dashboard" />
+            <q-route-tab to="/profile" label="Profile" />
+            <q-route-tab to="/logout" label="Log out" />
           </q-tabs>
         </q-toolbar>
       </q-header>
@@ -39,8 +38,7 @@
       <q-header elevated class="row justify-center text-grey bg-white">
         <q-toolbar>
           <q-toolbar-title class="title text-center">
-            Quizzi
-            <span style="color: #F2994A">O</span>n 2.0
+            Quizzi<span style="color: #F2994A">O</span>n 2.0
           </q-toolbar-title>
         </q-toolbar>
         <q-toolbar>
@@ -50,8 +48,8 @@
             indicator-color="primary"
             v-if="typeof this.$store.state.authLogin == 'undefined' || this.$store.state.authLogin.token == null"
           >
-            <q-route-tab to="join" label="Join" />
-            <q-route-tab to="signin" label="Sign in" />
+            <q-route-tab to="/" label="Join" />
+            <q-route-tab to="/signin" label="Sign in" />
           </q-tabs>
           <q-tabs
             class="text-#828282; q-tabs-phone"
@@ -60,9 +58,9 @@
             align="justify"
             v-else
           >
-            <q-route-tab to="dashboard" label="Dashboard" />
-            <q-route-tab to="profile" label="Profile" />
-            <q-route-tab to="logout" label="Log out" />
+            <q-route-tab to="/dashboard" label="Dashboard" />
+            <q-route-tab to="/profile" label="Profile" />
+            <q-route-tab to="/logout" label="Log out" />
           </q-tabs>
         </q-toolbar>
       </q-header>

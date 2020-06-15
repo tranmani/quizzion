@@ -9,7 +9,7 @@ export default {
 
   state: {
     token: window.sessionStorage.getItem('token'),
-    user: {}
+    user: window.sessionStorage.getItem('user') // {}
   },
 
   mutations: {
@@ -19,12 +19,15 @@ export default {
     },
 
     SET_USER(state, userProfile) {
-      Object.assign(state.user, userProfile)
+      // Object.assign(state.user, userProfile)
+      state.user = userProfile;
+      window.sessionStorage.setItem('user', userProfile)
     },
 
     logout(state) {
       state.token = null
       window.sessionStorage.removeItem('token')
+      window.sessionStorage.removeItem('user')
       state.user = {}
     }
   },

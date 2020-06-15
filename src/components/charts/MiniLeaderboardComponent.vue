@@ -1,127 +1,219 @@
 <template>
-    <q-card class="bg-transparent no-shadow full-width">
+    <q-card class="bg-transparent no-shadow full-width" style="height: 10%">
         <q-card-section>
-            <canvas id="mini-bar-chart"></canvas>
+          <div class="center">
+            <div class="top3">
+              <div class="two item">
+                <section v-if="typeof this.userData[1] != 'undefined'">
+                <div class="pos">
+                  <!-- 2nd -->
+                </div>
+                <div class="pic" v-bind:style="{ backgroundImage: 'url(http://api.adorable.io/avatar/' + (1) + ')' }"></div>
+                <div class="name">
+                  {{ this.userData[1].username }}
+                </div>
+                <div class="score">
+                  {{ this.userData[1].score }}
+                </div>
+                </section>
+              </div>
+              <div class="one item">
+                <section v-if="typeof this.userData[0] != 'undefined'">
+                <div class="pos">
+                  <!-- 1st -->
+                </div>
+                <div class="pic" v-bind:style="{ backgroundImage: 'url(http://api.adorable.io/avatar/' + (0) + ')' }"></div>
+                <div class="name">
+                  {{ this.userData[0].username }}
+                </div>
+                <div class="score">
+                  {{ this.userData[0].score }}
+                </div>
+                </section>
+              </div>
+              <div class="three item">
+                <section v-if="typeof this.userData[2] != 'undefined'">
+                <div class="pos">
+                  <!-- 3rd -->
+                </div>
+                <div class="pic" v-bind:style="{ backgroundImage: 'url(http://api.adorable.io/avatar/' + (2) + ')' }"></div>
+                <div class="name">
+                  {{ this.userData[2].username }}
+                </div>
+                <div class="score">
+                  {{ this.userData[2].score }}
+                </div>
+                </section>
+              </div>
+            </div>
+          </div>
         </q-card-section>
     </q-card>
 </template>
 
 <script>
-import Chart from 'chart.js'
 export default {
   data () {
     return {
     }
   },
   mounted () {
-    this.createChart('mini-bar-chart')
   },
-  props: ['titleData', 'userData', 'colorData'],
-  methods: {
-    createChart (chartId) {
-      const ctx = document.getElementById(chartId)
-      const myChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: [this.userData[2].username, this.userData[0].username, this.userData[1].username],
-          datasets: [
-            {
-              backgroundColor: [
-                this.colorData.transparent, 
-                this.colorData.transparent, 
-                this.colorData.transparent
-              ],
-              borderColor: [
-                this.colorData.transparent, 
-                this.colorData.transparent, 
-                this.colorData.transparent
-              ],
-              hoverBackgroundColor: [
-                this.colorData.transparent, 
-                this.colorData.transparent, 
-                this.colorData.transparent
-              ],
-              hoverBorderColor: [
-                this.colorData.thirdPlaceText, 
-                this.colorData.firstPlaceText, 
-                this.colorData.secondPlaceText
-              ],
-              hoverBorderWidth: 0,
-              label: [this.userData[2].username, this.userData[0].username, this.userData[1].username],
-              data: [this.userData[2].score, this.userData[0].score, this.userData[1].score],
-              borderWidth: 5,
-              hoverBorderWidth: 0
-            }
-          ],
-        },
-        options: {
-            title: {
-                display: true,
-                text: 'Question Ranking',
-                fontSize: 20,
-                lineHeight: 7.5
-            },
-            legend: {
-              display: false
-            },
-            tooltips: {
-              enabled: false,
-            },
-            hover: {
-              animationDuration: 0
-            },
-            responsive: true,
-            animation: {
-              duration: 1,
-              onComplete: function() {
-                var chartInstance = this,
-                ctx = this.ctx;
-
-                ctx.font = Chart.helpers.fontString(
-                  /*Chart.defaults.global.defaultFontSize*/30, 
-                  Chart.defaults.global.defaultFontStyle, 
-                  Chart.defaults.global.defaultFontFamily
-                );
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'bottom';
-
-                this.data.datasets.forEach(function(dataset, i) {
-                  var meta = chartInstance.controller.getDatasetMeta(i);
-                  meta.data.forEach(function(bar, index) {
-                    ctx.fillStyle =  dataset.hoverBorderColor[index];
-                    var data = dataset.label[index];
-                    ctx.fillText(data, bar._model.x, bar._model.y - 5);
-                  });
-                });
-              }
-            },
-            scales: {
-              yAxes: [
-                {
-                  ticks: {
-                    beginAtZero: true,
-                    display: false
-                  },
-                  gridLines: {
-                    display: false
-                  },
-                }
-              ],
-              xAxes: [
-                {
-                  ticks: {
-                    display: false
-                  },
-                  gridLines: {
-                    display: false
-                  },
-                }
-              ]
-            }
-        }
-      })
-      return myChart
-    }
-  }
+  props: ['titleData', 'userData', 'colorData', 'userId']
 }
 </script>
+
+<style lang="stylus" scoped>
+@import url('https://fonts.googleapis.com/css?family=Red+Hat+Display:400,900&display=swap');
+.center {
+	position: inherit;
+	margin-top: 10%;
+	left: 50%;
+	transform: translate(-50%, 0%);
+	color: #333;
+	z-index: 10;
+	font-family: 'Red Hat Display', sans-serif;
+}
+.top3 {
+	display: inline-flex;
+	justify-content: center;
+	align-items: flex-end;
+	color: #4b4168;
+}
+.top3 .item {
+	box-sizing: border-box;
+	position: relative;
+	background: white;
+	width: 9rem;
+	height: 10.5rem;
+	text-align: center;
+	padding: 2.8rem 0 0;
+	margin: 1rem 1rem 2rem;
+	border-radius: 0.5rem;
+	transform-origin: bottom;
+	cursor: pointer;
+	transition: transform 200ms ease-in-out;
+	box-shadow: 0 0 0.5rem 0 rgba(0, 0, 0, 0.1), 0 0.25rem 0.5rem -0.25rem rgba(0, 0, 0, 0.3);
+}
+.top3 .item .pic {
+	position: absolute;
+	top: -2rem;
+	left: 2.5rem;
+	width: 4rem;
+	height: 4rem;
+	border-radius: 50%;
+	background-size: cover;
+	background-position: center;
+	margin-right: 1rem;
+	box-shadow: 0 0 0.5rem 0 rgba(0, 0, 0, 0.2), 0 0.25rem 0.5rem -0.25rem rgba(0, 0, 0, 0.3);
+}
+.top3 .item .pos {
+	font-size: 1.1rem;
+	margin-bottom: 0.5rem;
+}
+.top3 .item .name {
+	font-weight: 900;
+	font-size: 1.5rem;
+	margin-bottom: 0.5rem;
+}
+.top3 .item .score {
+	opacity: 0.9;
+	padding-bottom: 0.5rem;
+}
+.top3 .item .score:after {
+	display: block;
+	content: 'points';
+	opacity: 0.75;
+}
+.top3 .item.one {
+	width: 10rem;
+	height: 11rem;
+	padding-top: 3.5rem;
+	background-color: rgb(241, 244, 58, 0.9)
+}
+.top3 .item.one .pic {
+	width: 5rem;
+	height: 5rem;
+	left: 2.5rem;
+}
+.top3 .item:hover {
+	transform: scale(1.05);
+}
+
+.top3 .item.two {
+	background-color: rgb(196, 196, 196, 0.9)
+}
+
+.top3 .item.three {
+	background-color: rgb(198, 170, 85, 0.9)
+}
+
+
+@media only screen and (min-width: 1875px) {
+  .center {
+	  left: calc(50% - (9rem + 2.8rem) * 1.5);
+	  transform: translate(0%, 0%);
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  .top3 .item {
+    box-sizing: border-box;
+    position: relative;
+    background: white;
+    width: 4.5rem;
+    height: 5.25rem;
+    text-align: center;
+    padding: 1.4rem 0 0;
+    margin: 0.5rem 0.5rem 1rem;
+    border-radius: 0.25rem;
+    transform-origin: bottom;
+    cursor: pointer;
+    transition: transform 200ms ease-in-out;
+    box-shadow: 0 0 0.5rem 0 rgba(0, 0, 0, 0.1), 0 0.25rem 0.5rem -0.25rem rgba(0, 0, 0, 0.3);
+  }
+  .top3 .item .pic {
+    position: absolute;
+    top: -1rem;
+    left: 1.25rem;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    margin-right: 0.5rem;
+    box-shadow: 0 0 0.5rem 0 rgba(0, 0, 0, 0.2), 0 0.25rem 0.5rem -0.25rem rgba(0, 0, 0, 0.3);
+  }
+  .top3 .item .pos {
+    font-size: 0.55rem;
+    margin-bottom: 0.25rem;
+  }
+  .top3 .item .name {
+    font-weight: 450;
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+  }
+  .top3 .item .score {
+    opacity: 0.45;
+    padding-bottom: 0.25rem;
+  }
+  .top3 .item .score:after {
+    display: block;
+    content: 'points';
+    opacity: 0.75;
+  }
+  .top3 .item.one {
+    width: 5rem;
+    height: 5.5rem;
+    padding-top: 1.75rem;
+    background-color: rgb(241, 244, 58, 0.9)
+  }
+  .top3 .item.one .pic {
+    width: 2.5rem;
+    height: 2.5rem;
+    left: 1.25rem;
+  }
+}
+</style>
+
+

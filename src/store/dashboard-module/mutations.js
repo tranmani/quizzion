@@ -16,8 +16,10 @@ export function emptyQuizzes(state) {
   state.dashboardLoaded = false
   state.quizzes = []
 }
-export function setLoaded(state) {
-  state.dashboardLoaded = true
+export function setLoaded(state, payload) {
+  if (payload == "false") {
+    state.dashboardLoaded = false
+  } else state.dashboardLoaded = true
 }
 export function setSortState(state, payload) {
   state.sortState = payload

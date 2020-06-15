@@ -3,7 +3,7 @@
     <div class="bg"></div>
     <section class="section-container justify-center">
       <div class="section-header shadow-3">
-          <h5>Invitation code</h5>
+        <h5>Invitation code</h5>
       </div>
       <div class="section-body column items-center">
         <InvitationCodeInput />
@@ -13,12 +13,13 @@
 </template>
 
 <script>
-import InvitationCodeInput from '../components/InvitationCodeInput'
-  export default {
-    components: {
-      InvitationCodeInput
-    }
+import InvitationCodeInput from "../components/InvitationCodeInput";
+
+export default {
+  components: {
+    InvitationCodeInput
   }
+};
 </script>
 
 <style lang="scss" scoped>
@@ -29,10 +30,10 @@ import InvitationCodeInput from '../components/InvitationCodeInput'
   background-size: cover;
   filter: blur(4px);
   left: -5px;
-  top:-5px;
-  bottom:-5px;
+  top: -5px;
+  bottom: -5px;
   right: -5px;
-  margin:-5px;
+  margin: -5px;
   position: fixed;
 }
 

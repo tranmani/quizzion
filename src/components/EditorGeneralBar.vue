@@ -7,6 +7,7 @@
         v-model="quiz.title"
         label="Title"
         lazy-rules
+        v-on:blur="saveState"
         :rules="[ val => val.length > 4 || 'Please type something longer than 4 characters']"
       />
       <q-input
@@ -15,6 +16,7 @@
         v-model="quiz.description"
         label="Description"
         lazy-rules
+        v-on:blur="saveState"
         :rules="[ val => val.length > 0 || 'Please type something']"
       />
       <q-input
@@ -22,6 +24,7 @@
         type="number"
         v-model="quiz.timeLimit"
         label="Time limit"
+        v-on:blur="saveState"
         :rules="[ val => val > 5 || 'Time limit should be higher than 5']"
       />
       <q-file filled bottom-slots v-model="quiz.thumbnail" label="Thumbnail">
@@ -78,6 +81,9 @@ export default {
     selectTheme(theme) {
       this.quiz.theme = theme;
       this.saveQuiz({ theme: theme });
+    },
+    saveState() {
+      this.saveQuiz(this.quiz);
     }
   }
 };

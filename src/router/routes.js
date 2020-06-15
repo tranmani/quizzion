@@ -2,7 +2,7 @@ const routes = [{
   path: '/',
   component: () => import('layouts/MainHeader.vue'),
   children: [{
-    path: '/join',
+    path: '/',
     name: 'join',
     component: () => import('pages/Join.vue')
   },
@@ -62,9 +62,23 @@ const routes = [{
     component: () => import('pages/Index.vue')
   },
   {
+    path: '/waitingroom/:inviteCode',
+    name: 'waitingroom',
+    props: true,
+    component: () => import('pages/WaitingRoom.vue')
+  },
+  {
     path: '/completequiz',
     name: 'completequiz',
     component: () => import('pages/CompletionPage.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/statisticoverview/:chosenTemplateHash?',
+    name: 'statisticoverview',
+    component: () => import('pages/StatisticOverview.vue'),
     meta: {
       requiresAuth: true
     }

@@ -37,16 +37,17 @@ export default {
   },
   methods: {
     createSession() {
-      this.socket.emit(
-        'createRoomRequest',
-        {
-          userHash: "7c580508c0e26ecac801ee4a42da6204",
-          formNumber: "81add7968fcc8b1e1eb77621b8fd228b"
-        }
-      );
+      this.socket.emit("createRoomRequest", {
+        userHash: "7c580508c0e26ecac801ee4a42da6204",
+        formHash: "81add7968fcc8b1e1eb77621b8fd228b",
+        duration: 60
+      });
     },
     joinRoom() {
-      this.socket.emit('joinRoomRequest', { code: this.code})
+      this.socket.emit("joinRoomRequest", { code: this.code });
+    },
+    startQuiz() {
+      this.socket.emit("start_quiz_request", { code: this.code });
     }
   },
   created() {
@@ -55,20 +56,34 @@ export default {
     this.socket.on("create_room_response", message => {
       this.requestCode = message.code;
       console.log(message);
+      this.$router.push({
+        name: "waitingroom",
+        params: {
+          inviteCode: message.code,
+          title: "quiz title",
+          formHash: this.formHash,
+          code: message.code,
+          socket: this.socket
+        }
+      });
     });
 
-    this.socket.on('join_room_response', response => {
+    this.socket.on("join_room_response", response => {
       console.log(response);
     });
 
-    this.socket.on('connection', () => {
+    this.socket.on("connection", () => {
       console.log(`Connected`);
     });
-    this.socket.on('connect_error', (error) => {
+    this.socket.on("connect_error", error => {
       console.log(`Error while connecting to socket server: ${error}`);
     });
-    this.socket.on('error', (error) => {
+    this.socket.on("error", error => {
       console.log(`Server error: ${error}`);
+    });
+
+    this.socket.on("quiz_timer_response", response => {
+      console.log("quiz timer response: ", response);
     });
   }
 };

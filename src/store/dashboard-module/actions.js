@@ -10,8 +10,8 @@ export function deleteQuiz({ commit }, tn) {
 export function emptyQuizzes({ commit }) {
   commit('emptyQuizzes')
 }
-export function setLoaded({ commit }) {
-  commit('setLoaded')
+export function setLoaded({ commit }, payload) {
+  commit('setLoaded', payload)
 }
 export function setSortState({ commit }, payload) {
   commit('setSortState', payload)

@@ -1,27 +1,31 @@
 <template>
   <q-page class="flex flex-center">
-    <CompletionCard
-      v-if="questionHashes != null"
+    <StatisticOverviewCard
+      v-if="questionHashes.length > 0"
       v-bind:label="label"
       v-bind:questionHashes="questionHashes"
     />
+
+    <Error v-if="questionHashes.length == 0" errorCode='404' errorText='No questions associated with quiz'/>
   </q-page>
 </template>
 
 <script>
-import CompletionCard from "../components/CompletionCard";
+import StatisticOverviewCard from "../components/StatisticOverviewCard";
+import Error from "../components/helpers/Error";
 import QuizTemplateRepository from "../remote/quiz/QuizTemplateRepository";
 export default {
-  name: "CompleteQuiz",
+  name: "StatisticOverviewQuiz",
   data() {
     return {
       label: "",
-      tn: "z4h27ymjs",
+      tn: typeof this.$route.params.chosenTemplateHash == 'undefined' ?  "" : this.$route.params.chosenTemplateHash,
       questionHashes: null
     };
   },
   components: {
-    CompletionCard
+    StatisticOverviewCard,
+    Error
   },
   methods: {
     loadTemplateContent: function() {
@@ -42,6 +46,9 @@ export default {
         let data = response.data;
         let content = data.content.content;
         let questionHashes = JSON.parse(content).questions
+        if (questionHashes == null) {
+          questionHashes = []
+        }
         this.questionHashes = questionHashes;
         console.log(questionHashes);
       });

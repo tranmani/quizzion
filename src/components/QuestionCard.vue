@@ -36,6 +36,9 @@
 export default {
   name: 'QuestionCard',
   props: ["question", "editMode"], // Should be set via two-way binding in parent component.
+  created() {
+    this.question.answers.sort((a, b) => (a.position > b.position) ? 1 : -1)
+  },
   methods: {
       selectAnswer:function(answer) {
           this.$emit("selected", answer);

@@ -1,37 +1,39 @@
 <template>
-  <q-card class="completion-card" v-bind:class="[!this.chartDisplayed ? this.bg : 'bg-plain']">
+  <q-card class="completion-card bg-plain">
     <q-card-section class="card-header bg-white">
       <div class="card-toolbar">
-        <QuizHeader v-bind:title="label" :timer="true" :progression="parseFloat(this.position+1) / parseFloat(this.questionHashes.length)"/>
+        <QuizHeader v-bind:title="label" :timer="false" :progression="parseFloat(this.position+1) / parseFloat(this.questionHashes.length)"/>
       </div>
     </q-card-section>
-
     <q-card-section vertical align="center">
-      <CompletionQuestionCard
-        v-on:selected="getSelectedAnswer"
-        v-if="question !== null && !this.chartDisplayed"
-        v-show="!loading"
-        :question="question"
-      />
-      <doughnut-chart v-if="this.chartDisplayed && !this.leaderboardDisplayed" :questionData="qstnData" :answerData="ansrData"></doughnut-chart>
-      <mini-leaderboard-component v-if="this.chartDisplayed && !this.leaderboardDisplayed" :titleData="ttlData" :userData="usrData" :colorData="clrData"></mini-leaderboard-component>
-    
-      <leaderboard-component v-if="this.chartDisplayed && this.leaderboardDisplayed" :userId="usrId" :titleData="ttlData" :userData="usrData" :colorData="clrData"></leaderboard-component>
-      </q-card-section>
+      <doughnut-chart :overview="true" :questionData="qstnData" :answerData="ansrData"></doughnut-chart>
+    </q-card-section>
     <q-card-actions class="absolute-bottom" vertical align="center">
-      <q-btn
-        class="button"
-        v-show="!loading"
-        v-if="lastQuestion && this.chartDisplayed"
-        v-on:click="finish"
-        >Finsih</q-btn
-      >
-      <q-btn class="button" v-show="!loading" v-if="(!lastQuestion || !this.chartDisplayed) && this.selectedAnsr != ''" v-on:click="next"
-        >Next</q-btn
-      >
-      <q-btn class="button" v-show="!loading" disabled v-if="(!lastQuestion || !this.chartDisplayed) && this.selectedAnsr == ''"
-        >Next</q-btn
-      >
+      <div class="q-pa-md q-gutter-sm" style="display: inline-flex;" v-if="lastQuestion">
+        <q-btn class="button" v-show="!loading" v-if="this.position >= 1" v-on:click="previous"
+          >Previous</q-btn
+        >
+        <q-btn class="button" v-show="!loading" disable v-if="this.position < 1" v-on:click="previous"
+          >Previous</q-btn
+        >
+        <q-btn
+          class="button"
+          v-show="!loading"
+          v-on:click="finish"
+          >Finish</q-btn
+        >
+      </div>
+      <div class="q-pa-md q-gutter-sm" style="display: inline-flex;" v-else>
+        <q-btn class="button" v-show="!loading" v-if="this.position >= 1" v-on:click="previous"
+          >Previous</q-btn
+        >
+        <q-btn class="button" v-show="!loading" disable v-if="this.position < 1" v-on:click="previous"
+          >Previous</q-btn
+        >
+        <q-btn class="button" v-show="!loading" v-on:click="next"
+          >Next</q-btn
+        >
+      </div>
     </q-card-actions>
     <q-inner-loading :showing="loading">
       <q-spinner size="50px" color="secondary" />
@@ -42,9 +44,6 @@
 <script>
 import QuizHeader from "../components/QuizHeader";
 import DoughnutChart from '../components/charts/DoughnutChart'
-import LeaderboardComponent from '../components/charts/LeaderboardComponent'
-import MiniLeaderboardComponent from '../components/charts/MiniLeaderboardComponent'
-import CompletionQuestionCard from "../components/CompletionQuestionCard";
 import QuestionRepository from "../remote/quiz/QuestionRepository";
 import AnswerRepository from "../remote/quiz/AnswerRepository";
 
@@ -52,22 +51,24 @@ export default {
   name: "CompletionCard",
   props: ["label", "questionHashes"],
   methods: {
-    getSelectedAnswer: function(value) {
-      this.selectedAnsr = value
-      this.updateSelectedAnswer(value)
-      console.log(value)
-    },
     next: function() {
-      if (this.position >= this.questionHashes.length - 1 && this.chartDisplayed) {
+      if (this.position >= this.questionHashes.length - 1) {
         return;
       }
-      if (this.chartDisplayed) {
-        this.position++;
-        this.loadQuestion();
-        this.selectedAnsr = ''
+      
+      this.position++;
+      this.loadQuestion();
+      
+      console.log(this.selectedAnsr)
+    },
+    previous: function() {
+      if (this.position > 1) {
+        return;
       }
-      this.chartDisplayed = !this.chartDisplayed
-      console.log('selected answer')
+      
+      this.position--;
+      this.loadQuestion();
+      
       console.log(this.selectedAnsr)
     },
     finish: function() {
@@ -102,33 +103,18 @@ export default {
 
             // Doughnut chart data
             this.qstnData.title = data.label
-            console.log("TESTIN " + answerResponse.data.varoptiongroup)
+            console.log(answerResponse.data.varoptiongroup)
             let index = 0
             this.currentAnswerGroup = answerResponse.data.varoptiongroup
             answerResponse.data.varoptiongroup.forEach(element => {
               this.ansrData[index].description = element.label
-              this.ansrData[index].correct = (element.weight == 1 || element.value == 1)  
+              this.ansrData[index].correct = (element.weight == 1)  
               this.ansrData[index].chosen = false
               this.ansrData[index].results = 0
               index++
             });
           });
         });
-      });
-    },
-    updateSelectedAnswer: function(chosenAnswerName) {
-      let index = 0
-      console.log("CHOSEN ANSWER NAME " + chosenAnswerName + "!!")
-      console.log(chosenAnswerName)
-      this.currentAnswerGroup.forEach(element => {
-        if (element.name == chosenAnswerName) {
-          this.ansrData[index].results++
-          this.ansrData[index].chosen = true
-        } else {
-          this.ansrData[index].results = 0
-          this.ansrData[index].chosen = false
-        }
-        index++
       });
     },
     checkLastQuestion: function() {
@@ -141,10 +127,7 @@ export default {
   },
   components: {
     QuizHeader,
-    CompletionQuestionCard,
-    DoughnutChart,
-    LeaderboardComponent,
-    MiniLeaderboardComponent
+    DoughnutChart
   },
   data() {
     return {
@@ -196,69 +179,7 @@ export default {
         }
       ],
       usrId: 6,
-      ttlData: "Quiz Ranking",
-      clrData: {
-        transparent: "rgb(255,255,255, 0.0)",
-
-        firstPlace: "rgb(241, 244, 58, 0.9)",
-        firstPlaceBorder: "rgb(241, 244, 58)",
-        firstPlaceText: "rgb(203, 207, 35)",
-
-        secondPlace: "rgb(196, 196, 196, 0.9)",
-        secondPlaceBorder: "rgb(196, 196, 196)",
-        secondPlaceText: "rgb(153, 153, 153)",
-
-        thirdPlace: "rgb(198, 170, 85, 0.9)",
-        thirdPlaceBorder: "rgb(198, 170, 85)",
-        thirdPlaceText: "rgb(171, 148, 79)"
-      },
-      usrData: [
-        {
-          id: 1,
-          username: this.$store.state.authLogin.user.username,//"User 1",
-          score: 100
-        },
-        {
-          id: 2,
-          username: "User 2",
-          score: 80
-        },
-        {
-          id: 3,
-          username: "User 3",
-          score: 70
-        },
-        {
-          id: 4,
-          username: "User 4",
-          score: 60
-        },
-        {
-          id: 5,
-          username: "User 5",
-          score: 50
-        },
-        {
-          id: 6,
-          username: "User 6",
-          score: 40
-        },
-        {
-          id: 7,
-          username: "User 7",
-          score: 30
-        },
-        {
-          id: 8,
-          username: "User 8",
-          score: 20
-        },
-        {
-          id: 9,
-          username: "User 9",
-          score: 10
-        }
-      ]
+      ttlData: "Quiz Ranking"
     };
   },
   mounted() {
@@ -285,11 +206,12 @@ export default {
 </script>
 <style scoped>
 .completion-card {
+  position: fixed;
   background: chocolate;
   width: 100%;
+  max-height: calc(100vh - 50px);
   min-height: calc(100vh - 50px);
 }
-
 .button {
   background: #6fcf97;
   color: white;

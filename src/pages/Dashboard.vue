@@ -46,7 +46,7 @@ export default {
     ]),
     ...mapGetters("authLogin", ["token"])
   },
-  mounted() {
+  created() {
     if (!this.dashboardLoaded) {
       this.quizzesForDisplay = [];
       this.getAllForms();

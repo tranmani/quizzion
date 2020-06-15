@@ -4,13 +4,13 @@
     <div class="progress">
       <q-linear-progress rounded size="10px" color="positive" :value="progression" />
     </div>
-    <span class="timeLeft">{{timeLeft}}</span>
+    <span v-if="timer" class="timeLeft">{{timeLeft}}</span>
   </div>
 </template>
 
 <script>
 export default {
-  props: ["title", "duration", "progression"],
+  props: ["title", "duration", "progression", "timer"],
   name: 'QuizHeader',
   data () {
     return {

@@ -12,9 +12,9 @@
           class="code-input"
           ref="code"
           @keyup.enter="goToQuizz"
-          mask="xxxxxxxxx"
+          mask="xxxxxxxxxxx"
           v-model="inviteCode"
-          :rules="[ val => val !== '' && val.length == 9|| '']"
+          :rules="[ val => val !== '' && val.length == 11|| '']"
         >
           <template v-slot:append>
             <q-btn
@@ -23,7 +23,7 @@
               icon="code"
               color="grey"
               size="s"
-              to="/completequiz"
+              @click="goToQuizz"
               dense
               rounded
             />
@@ -93,9 +93,12 @@
 
 <script>
 import { mapGetters, mapActions } from "vuex";
+import io from "socket.io-client";
+
 export default {
   data() {
     return {
+      socket: {},
       inviteCode: "",
       disabledBtn: true,
       drawer: false,
@@ -144,8 +147,24 @@ export default {
     };
   },
   mounted() {
+    this.socket = io("http://localhost:3000");
+
     this.menuList[1].sortTypes.forEach(element => {
       if (element.sort === this.sortState) element.active = true;
+    });
+
+    this.socket.on("join_room_response", response => {
+      if (!response.user) {
+        this.InvalidCode(response.error);
+      } else {
+        this.$router.push({
+          name: "waitingroom",
+          params: {
+            inviteCode: this.inviteCode,
+            socket: this.socket
+          }
+        });
+      }
     });
   },
   computed: {
@@ -155,18 +174,25 @@ export default {
     ...mapActions("quizzes", ["setSortState"]),
     goToQuizz() {
       if (!this.disabledBtn) {
-        this.$router.push({ path: "/quiz/" + this.inviteCode });
+        this.socket.emit("joinRoomRequest", { code: this.inviteCode });
       }
     },
     clearActiveState() {
       this.menuList[1].sortTypes.forEach(element => {
         element.active = false;
       });
+    },
+    InvalidCode(error) {
+      this.$q.dialog({
+        title: "Invalid Code",
+        message: error,
+        cancel: false
+      });
     }
   },
   watch: {
     inviteCode: function(newState, oldState) {
-      if (newState.length != 9) {
+      if (newState.length !== 11) {
         this.disabledBtn = true;
       } else {
         this.disabledBtn = false;

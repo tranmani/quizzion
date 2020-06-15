@@ -3,11 +3,11 @@
     class="box shadow-1 rounded-borders col-auto q-ma-md"
     @mouseover="hover = true"
     @mouseleave="hover = false"
-    @click="hover = !hover"
+    @click="createQuizSession"
   >
     <div class="row icon-center bg-box" :class="bgTheme">
       <transition name="fade">
-        <div v-if="hover" class="q-gutter-sm cursor-pointer">
+        <div v-if="hover || this.width < 600" class="q-gutter-sm cursor-pointer">
           <q-icon name="delete_outline" size="35px" @click="deleteConfirm">
             <q-tooltip anchor="top middle" self="top middle" :offset="[10, 30]">Delete {{ title }}</q-tooltip>
           </q-icon>
@@ -21,7 +21,7 @@
       </transition>
     </div>
     <div class="info">
-      <p class="center title q-pt-xs">{{ title | truncate(26, '...') }}</p>
+      <p class="center title q-pt-xs">{{ title | truncate(26, "...") }}</p>
       <p class="float-left q-pl-sm">{{ averagePass }}% Avg.</p>
       <p class="float-right q-pr-sm">{{ formatNumber(playTimes) }} Plays</p>
     </div>
@@ -77,12 +77,13 @@ export default {
       if (this.theme == 5) theme = "bg5";
       return theme;
     },
-    ...mapGetters("authLogin", ["token"])
+    ...mapGetters("authLogin", ["token", "user"])
   },
   data() {
     return {
       hover: false,
-      quizzLink: "quizz/" + this.id
+      quizzLink: "quizz/" + this.id,
+      width: 0
     };
   },
   filters: {
@@ -140,17 +141,33 @@ export default {
         });
     },
     goToQuizz() {
-      this.$router.push({ path: "/quiz/" + this.inviteCode });
+      this.$router.push({ path: "/statisticoverview/" + this.tn,
+        props: { chosenTemplateHash: this.tn }
+      });
     },
     goToEditQuizz() {
       this.$router.push({
-        path: "/quiz/" + this.tn,
-        props: { chosenTemplateHash: this.tn }
+        path: "/quiz/" + this.tn
       });
+    },
+    createQuizSession() {
+      this.hover = !this.hover
+
+      if (this.fh == undefined) {
+        return;
+      }
+
+      console.log("USER HASH: ", this.user.uh);
+
+      // this.socket.emit("createRoomRequest", {
+      //   userHash: "7c580508c0e26ecac801ee4a42da6204",
+      //   formHash: this.fh
+      // });
     }
   },
   created() {
     window.addEventListener('resize', this.onResize)
+    this.width = window.innerWidth
   },
 
   beforeDestroy() {
