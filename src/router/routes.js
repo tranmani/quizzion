@@ -65,7 +65,19 @@ const routes = [{
     path: '/waitingroom/:inviteCode',
     name: 'waitingroom',
     props: true,
-    component: () => import('pages/WaitingRoom.vue')
+    component: () => import('pages/WaitingRoom.vue'),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/waitingroom/:inviteCode',
+    name: 'guestwaitingroom',
+    props: true,
+    component: () => import('pages/WaitingRoom.vue'),
+    meta: {
+      requiresAuth: false,
+    },
   },
   {
     path: '/completequiz',

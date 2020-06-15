@@ -62,8 +62,6 @@ export default {
     }
   },
   mounted() {
-    console.log(this.$route);
-
     this.title = this.$route.params.title;
     this.formHash = this.$route.params.formHash;
     this.code = this.$route.params.code;

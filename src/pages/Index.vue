@@ -57,7 +57,7 @@ export default {
       this.requestCode = message.code;
       console.log(message);
       this.$router.push({
-        name: "waitingroom",
+        name: "guestwaitingroom",
         params: {
           inviteCode: message.code,
           title: "quiz title",

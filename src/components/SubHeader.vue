@@ -2,33 +2,7 @@
   <div class="subheader">
     <q-toolbar>
       <div class="input">
-        <q-input
-          rounded
-          outlined
-          dense
-          lazy-rules
-          bg-color="grey-4"
-          label="Invite Code..."
-          class="code-input"
-          ref="code"
-          @keyup.enter="goToQuizz"
-          mask="xxxxxxxxxxx"
-          v-model="inviteCode"
-          :rules="[ val => val !== '' && val.length == 11|| '']"
-        >
-          <template v-slot:append>
-            <q-btn
-              :disabled="disabledBtn"
-              class="btn"
-              icon="code"
-              color="grey"
-              size="s"
-              @click="goToQuizz"
-              dense
-              rounded
-            />
-          </template>
-        </q-input>
+        <InvitationCodeInput :joinBtn="false" />
       </div>
       <q-space />
       <q-btn
@@ -94,13 +68,15 @@
 <script>
 import { mapGetters, mapActions } from "vuex";
 import io from "socket.io-client";
+import InvitationCodeInput from "./InvitationCodeInput";
 
 export default {
+  components: {
+    InvitationCodeInput
+  },
   data() {
     return {
       socket: {},
-      inviteCode: "",
-      disabledBtn: true,
       drawer: false,
       sortItemList: false,
       active: true,
@@ -146,27 +122,6 @@ export default {
       ]
     };
   },
-  mounted() {
-    this.socket = io("http://localhost:3000");
-
-    this.menuList[1].sortTypes.forEach(element => {
-      if (element.sort === this.sortState) element.active = true;
-    });
-
-    this.socket.on("join_room_response", response => {
-      if (!response.user) {
-        this.InvalidCode(response.error);
-      } else {
-        this.$router.push({
-          name: "waitingroom",
-          params: {
-            inviteCode: this.inviteCode,
-            socket: this.socket
-          }
-        });
-      }
-    });
-  },
   computed: {
     ...mapGetters("quizzes", ["sortState"])
   },
@@ -181,22 +136,6 @@ export default {
       this.menuList[1].sortTypes.forEach(element => {
         element.active = false;
       });
-    },
-    InvalidCode(error) {
-      this.$q.dialog({
-        title: "Invalid Code",
-        message: error,
-        cancel: false
-      });
-    }
-  },
-  watch: {
-    inviteCode: function(newState, oldState) {
-      if (newState.length !== 11) {
-        this.disabledBtn = true;
-      } else {
-        this.disabledBtn = false;
-      }
     }
   }
 };
