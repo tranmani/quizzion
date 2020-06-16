@@ -162,7 +162,7 @@ export default {
     position: relative;
     background: white;
     width: 4.5rem;
-    height: 5.25rem;
+    height: 6rem;
     text-align: center;
     padding: 1.4rem 0 0;
     margin: 0.5rem 0.5rem 1rem;
@@ -204,9 +204,12 @@ export default {
   }
   .top3 .item.one {
     width: 5rem;
-    height: 5.5rem;
+    height: 6.5rem;
     padding-top: 1.75rem;
     background-color: rgb(241, 244, 58, 0.9)
+  }
+  .top3 .item.two {
+    height: 6.25rem;
   }
   .top3 .item.one .pic {
     width: 2.5rem;

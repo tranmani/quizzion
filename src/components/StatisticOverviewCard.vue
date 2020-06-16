@@ -78,10 +78,7 @@ export default {
       console.log(this.selectedAnsr)
     },
     finish: function() {
-      if (this.leaderboardDisplayed) {  
-        this.$router.push({ path: '/dashboard' })
-      }
-      this.leaderboardDisplayed = !this.leaderboardDisplayed
+      this.$router.push({ path: '/dashboard' })
     },
     loadQuestion: function() {
       this.loading = true;

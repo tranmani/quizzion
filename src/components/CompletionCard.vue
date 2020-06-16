@@ -24,7 +24,7 @@
         v-show="!loading"
         v-if="lastQuestion && this.chartDisplayed"
         v-on:click="finish"
-        >Finsih</q-btn
+        >Finish</q-btn
       >
       <q-btn class="button" v-show="!loading" v-if="(!lastQuestion || !this.chartDisplayed) && this.selectedAnsr != ''" v-on:click="next"
         >Next</q-btn
@@ -270,6 +270,12 @@ export default {
 .completion-card {
   width: 100%;
   min-height: $height-without-header;
+}
+
+@media only screen and (max-width: 600px) {
+  .completion-card {
+    min-height: $height-without-header-mobile;  
+  }
 }
 
 .button {

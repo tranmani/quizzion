@@ -243,7 +243,7 @@ export default {
     position: relative;
     background: white;
     width: 4.5rem;
-    height: 5.25rem;
+    height: 6rem;
     text-align: center;
     padding: 1.4rem 0 0;
     margin: 0.5rem 0.5rem 1rem;
@@ -285,14 +285,30 @@ export default {
   }
   .top3 .item.one {
     width: 5rem;
-    height: 5.5rem;
+    height: 6.5rem;
     padding-top: 1.75rem;
     background-color: rgb(241, 244, 58, 0.9)
+  }
+  .top3 .item.two {
+    height: 6.25rem;
+    padding-top: 1.75rem;
   }
   .top3 .item.one .pic {
     width: 2.5rem;
     height: 2.5rem;
     left: 1.25rem;
+  }
+  .list .item {
+	height: 2rem;
+  }
+  .list .item .pic {
+  	position: absolute;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 0 0.5rem 0 rgba(0,0,0,0.2), 0 0.25rem 0.5rem -0.25rem rgba(0,0,0,0.3);
   }
 }
 </style>
