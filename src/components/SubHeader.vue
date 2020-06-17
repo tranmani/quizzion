@@ -44,22 +44,23 @@
 
           <q-separator v-if="menuItem.separator" />
         </q-list>
-
-        <q-list dense v-if="sortItemList">
-          <q-item
-            clickable
-            v-ripple.early
-            v-for="(sortType, index) in menuList[1].sortTypes"
-            :key="index"
-            :active="sortType.active"
-            @click="$emit('sort', sortType.sort), setSortState(sortType.sort), clearActiveState(), sortType.active = true"
-          >
-            <q-item-section avatar>
-              <q-icon name="sort" />
-            </q-item-section>
-            <q-item-section>{{ sortType.label }}</q-item-section>
-          </q-item>
-        </q-list>
+        <transition name="fade">
+          <q-list dense v-if="sortItemList">
+            <q-item
+              clickable
+              v-ripple.early
+              v-for="(sortType, index) in menuList[1].sortTypes"
+              :key="index"
+              :active="sortType.active"
+              @click="$emit('sort', sortType.sort), setSortState(sortType.sort), clearActiveState(), sortType.active = true"
+            >
+              <q-item-section avatar>
+                <q-icon name="sort" />
+              </q-item-section>
+              <q-item-section>{{ sortType.label }}</q-item-section>
+            </q-item>
+          </q-list>
+        </transition>
       </q-scroll-area>
     </q-drawer>
   </div>
@@ -125,6 +126,14 @@ export default {
   computed: {
     ...mapGetters("quizzes", ["sortState"])
   },
+  mounted() {
+    this.menuList[1].sortTypes.forEach(element => {
+      if (element.sort == this.sortState) {
+        element.active = true;
+        return;
+      }
+    });
+  },
   methods: {
     ...mapActions("quizzes", ["setSortState"]),
     goToQuizz() {
@@ -147,12 +156,22 @@ export default {
 }
 
 .subheader {
-  background-color: #ff7e21;
+  background-color: $secondary;
   position: absolute;
   top: 0;
   height: 3.5rem;
   width: 100%;
   left: 0;
   right: 0;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.4s;
+}
+
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

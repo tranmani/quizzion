@@ -1,6 +1,6 @@
 <template>
   <q-page class="bg-grey-6 column">
-    <div class="container q-pt-lg">
+    <div class="container">
       <ProfileSkeleton v-if="!loaded" class="flex column section center" />
 
       <div v-if="loaded" class="flex column section center">
@@ -222,6 +222,7 @@ export default {
 
 <style lang="scss" scoped>
 .container {
+  padding-top: 1em;
   margin: 0 auto;
   max-width: 90%;
   width: 100%;
@@ -252,7 +253,8 @@ p {
   transition: opacity 0.6s;
 }
 
-.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+.fade-enter,
+.fade-leave-to {
   opacity: 0;
 }
 
@@ -281,6 +283,11 @@ p {
   .info,
   .form {
     width: 80%;
+    margin-top: 2em;
+  }
+  .container {
+    padding-top: 0em;
+    height: $height-without-header-mobile;
   }
 }
 </style>
