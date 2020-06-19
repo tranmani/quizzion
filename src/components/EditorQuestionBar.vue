@@ -62,7 +62,7 @@ export default {
     };
   },
   created() {
-    this.question = Object.assign({}, this.question, this.getQuestion);
+    Object.assign(this.question, this.getQuestion);
     this.question.answers.sort((a, b) => (a.position > b.position) ? 1 : -1)
     this.currentPlace = this.getPositionString(this.question.answers.length+1);
     console.log("current place is ", this.currentPlace);

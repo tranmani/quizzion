@@ -419,6 +419,7 @@ export default {
 
     editQuestion2() {
       var question = this.getQuestion;
+      this.saveQuestionToList(question);
       if (this.loadedTemplateHash != "" && question.vh) {
         question = {
           label: question.label,
@@ -493,6 +494,14 @@ export default {
           this.questions[i] = question;
         }
         i++;
+      });
+    },
+
+    updateListing(question) {
+      this.questions.forEach(q => {
+        if(q.position === question.position) {
+          q = question;
+        }
       });
     },
 

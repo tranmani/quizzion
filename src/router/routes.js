@@ -57,6 +57,14 @@ const routes = [{
     }
   },
   {
+    path: '/chat',
+    name: 'chat',
+    component: () => import('pages/ChatPage.vue'),
+    meta: {
+      requiresAuth: false
+    }
+  },
+  {
     path: '/index',
     name: 'index',
     component: () => import('pages/Index.vue')
