@@ -8,14 +8,17 @@
       lazy-rules
       bg-color="grey-4"
       label="Invite Code..."
-      class="code-input"
       ref="code"
       @keyup.enter="goToQuizz"
       :class="joinBtn ? 'q-mt-lg' : ''"
       mask="xxxxxxxxxxx"
       v-model="inviteCode"
       v-if="joinBtn"
-      :rules="[ val => val !== '' && val.length > 9|| 'Invitation code must have 10 numbers']"
+      :rules="[
+        val =>
+          (val !== '' && val.length > 9) ||
+          'Invitation code must have 10 numbers'
+      ]"
     >
       <template v-slot:prepend>
         <q-icon name="code" />
@@ -29,14 +32,13 @@
       lazy-rules
       bg-color="grey-4"
       label="Invite Code..."
-      class="code-input"
       ref="code"
       @keyup.enter="goToQuizz"
       :class="joinBtn ? 'q-mt-lg' : ''"
       mask="xxxxxxxxxxx"
       v-model="inviteCode"
       v-if="!joinBtn"
-      :rules="[ val => val !== '' && val.length > 9|| '']"
+      :rules="[val => (val !== '' && val.length > 9) || '']"
     >
       <template v-slot:prepend>
         <q-icon name="code" />
@@ -72,7 +74,11 @@ export default {
       disabledBtn: true,
       roomTitle: "",
       openSocket: false,
-      socket: null
+      socket: null,
+      userHash: "",
+      userToken: "",
+      userName: "",
+      userAvatarUrl: ""
     };
   },
   computed: {
@@ -87,13 +93,24 @@ export default {
         this.errorDialog(response.error);
       } else {
         this.roomTitle = response.quiz.title;
+        this.formHash = response.quiz.formHash;
+
+        console.log("WHOLE RESPONSE", response)
         // check if already logged in
         if (this.token == null) {
           this.enterName(response.user.userHash);
         } else {
           // TODO: wait for user info to save in session so we don't have to get user data
           this.getUser(this.token, response.user.userHash);
+          this.userName = response.user.username
         }
+        this.userHash = response.user.userHash
+        this.userToken = response.user.accessToken
+        this.userAvatarUrl = response.user.avatarUrl
+        console.log("User Hash: " + this.userHash)
+        console.log("User Token: " + this.userToken)
+        console.log("User Name: " + this.userName)
+        console.log("User Avatar: " + this.userAvatarUrl)
       }
     });
 
@@ -102,21 +119,41 @@ export default {
         this.errorDialog(response.error);
       } else {
         if (this.token == null) {
+          this.$store.dispatch("waitingRoom/setTitle", {
+            title: this.roomTitle
+          });
+          this.$store.dispatch("waitingRoom/setFormHash", {
+            formHash: this.formHash
+          });
+          this.$store.dispatch("waitingRoom/setInvitationCode", {
+            invitationCode: null
+          });
+
           this.$router.push({
             name: "guestwaitingroom",
             params: {
-              inviteCode: this.inviteCode,
               socket: this.socket,
-              title: this.roomTitle
+              hash: this.userHash,
+              tkn: this.userToken,
+              usrname: this.userName,
+              avatarUrl: this.userAvatarUrl
             }
           });
         } else {
+          this.$store.dispatch("waitingRoom/setTitle", {
+            title: this.roomTitle
+          });
+          this.$store.dispatch("waitingRoom/setFormHash", {
+            formHash: this.formHash
+          });
+          this.$store.dispatch("waitingRoom/setInvitationCode", {
+            invitationCode: this.inviteCode
+          });
+
           this.$router.push({
             name: "waitingroom",
             params: {
-              inviteCode: this.inviteCode,
-              socket: this.socket,
-              title: this.roomTitle
+              socket: this.socket
             }
           });
         }
@@ -152,6 +189,7 @@ export default {
           persistent: true
         })
         .onOk(data => {
+          this.userName = data
           this.socket.emit("add_username_request", {
             userHash: uh,
             username: data
@@ -189,10 +227,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.section-body {
-  align-content: center;
-}
-
 .join-btn {
   color: #ffffff;
   background-color: $accent;

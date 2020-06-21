@@ -8,7 +8,7 @@
 						<div class="pos">
 							<!-- 2nd -->
 						</div>
-						<div class="pic" v-bind:style="{ backgroundImage: 'url(http://api.adorable.io/avatar/' + (1) + ')' }"></div>
+						<div class="pic" v-bind:style="{ backgroundImage: 'url(' + this.userData[1].avatarUrl + ')' }"></div>
 						<div class="name">
 							{{ this.userData[1].username }}
 						</div>
@@ -22,7 +22,7 @@
 						<div class="pos">
 							<!-- 1st -->
 						</div>
-						<div class="pic" v-bind:style="{ backgroundImage: 'url(http://api.adorable.io/avatar/' + (0) + ')' }"></div>
+						<div class="pic" v-bind:style="{ backgroundImage: 'url(' + this.userData[0].avatarUrl + ')' }"></div>
 						<div class="name">
 							{{ this.userData[0].username }}
 						</div>
@@ -36,7 +36,7 @@
 						<div class="pos">
 							<!-- 3rd -->
 						</div>
-						<div class="pic" v-bind:style="{ backgroundImage: 'url(http://api.adorable.io/avatar/' + (2) + ')' }"></div>
+						<div class="pic" v-bind:style="{ backgroundImage: 'url(' + this.userData[2].avatarUrl + ')' }"></div>
 						<div class="name">
 							{{ this.userData[2].username }}
 						</div>
@@ -55,7 +55,7 @@
 					<div class="pos">
 						{{ index+4 }}
 					</div>
-					<div class="pic" v-bind:style="{ backgroundImage: 'url(http://api.adorable.io/avatar/' + (index+3) + ')' }"></div>
+					<div class="pic" v-bind:style="{ backgroundImage: 'url(' + this.userData[index+3].avatarUrl + ')' }"></div>
 					<div class="name">
 						<b>{{ usrData.id == userId ? 'You' : usrData.username }}</b>
 					</div>

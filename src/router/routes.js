@@ -57,20 +57,12 @@ const routes = [{
     }
   },
   {
-    path: '/chat',
-    name: 'chat',
-    component: () => import('pages/ChatPage.vue'),
-    meta: {
-      requiresAuth: false
-    }
-  },
-  {
     path: '/index',
     name: 'index',
     component: () => import('pages/Index.vue')
   },
   {
-    path: '/waitingroom/:inviteCode',
+    path: '/waitingroom',
     name: 'waitingroom',
     props: true,
     component: () => import('pages/WaitingRoom.vue'),
@@ -79,7 +71,7 @@ const routes = [{
     },
   },
   {
-    path: '/waitingroom/:inviteCode',
+    path: '/waitingroom',
     name: 'guestwaitingroom',
     props: true,
     component: () => import('pages/WaitingRoom.vue'),
@@ -90,9 +82,10 @@ const routes = [{
   {
     path: '/completequiz',
     name: 'completequiz',
+    props: true,
     component: () => import('pages/CompletionPage.vue'),
     meta: {
-      requiresAuth: true
+      requiresAuth: false
     }
   },
   {

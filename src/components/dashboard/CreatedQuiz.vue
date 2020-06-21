@@ -45,23 +45,27 @@ export default {
       required: true
     },
     averagePass: {
+      type: Number,
       required: true,
       default: 0
     },
     playTimes: {
+      type: Number,
       required: true,
       default: 0
     },
     tn: {
+      type: String,
       required: true
     },
     fh: {
+      type: String,
       required: true
     },
     timeLimit: {
+      type: Number,
       required: true
     },
-    inviteCode: {},
     theme: {
       type: Number,
       required: true,
@@ -103,7 +107,7 @@ export default {
       } else {
         this.hover = false;
       }
-      this.width = window.innerWidth
+      this.width = window.innerWidth;
     },
     formatNumber(num) {
       return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1 ");

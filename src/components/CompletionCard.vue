@@ -1,11 +1,22 @@
 <template>
-  <q-card class="completion-card" v-bind:class="[!this.chartDisplayed ? 'theme-'+this.theme : 'bg-plain']">
+  <q-card
+    class="completion-card"
+    v-bind:class="[!this.chartDisplayed ? 'theme-'+this.theme : 'bg-plain']"
+  >
     <q-card-section class="card-header bg-white">
       <div class="card-toolbar">
-        <QuizHeader v-bind:title="label" :timer="true" :progression="parseFloat(this.position+1) / parseFloat(this.questionHashes.length)"/>
+        <QuizHeader :title="label" :timer="true" :progression="parseFloat(this.position+1) / parseFloat(this.questions.length)" v-bind:socket="socket" />
       </div>
     </q-card-section>
-
+    <!--
+    {{ questions }}
+    ----
+    {{ this.qstnData}}
+    ----
+    {{ this.ansrData }}
+    ----
+    {{ this.$store.state.authLogin.token }}
+    -->
     <q-card-section vertical align="center">
       <CompletionQuestionCard
         v-on:selected="getSelectedAnswer"
@@ -17,7 +28,7 @@
       <mini-leaderboard-component v-if="this.chartDisplayed && !this.leaderboardDisplayed" :titleData="ttlData" :userData="usrData" :colorData="clrData"></mini-leaderboard-component>
     
       <leaderboard-component v-if="this.chartDisplayed && this.leaderboardDisplayed" :userId="usrId" :titleData="ttlData" :userData="usrData" :colorData="clrData"></leaderboard-component>
-      </q-card-section>
+    </q-card-section>
     <q-card-actions class="absolute-bottom" vertical align="center">
       <q-btn
         class="button"
@@ -50,15 +61,95 @@ import AnswerRepository from "../remote/quiz/AnswerRepository";
 
 export default {
   name: "CompletionCard",
-  props: ["label", "questionHashes", "theme"],
+  props: ["label", "questions", "theme", "socket"],//, "userHash", "userToken", "userName", "userAvatarUrl"],
+  methods: {
+  },
+  components: {
+    QuizHeader,
+    CompletionQuestionCard,
+    DoughnutChart,
+    LeaderboardComponent,
+    MiniLeaderboardComponent
+  },
+  data() {
+    return {
+      USER_TOKEN: typeof this.$route.params.userToken == "undefined"
+        ? "1122bce5787fb1169d53399797ebd40136c2b11badc0b2c70eb1506540438ef40d1328bf7c11e6cc0e0f07757c9506485b16b4cc0124e40c2c07b0aacaff2d90"
+        : this.$route.params.userToken,
+      uh: typeof this.$route.params.userHash == "undefined"
+        ? ""
+        : this.$route.params.userHash,
+      currentAnswerGroup: [],
+      selectedAnsr: '',
+      chartDisplayed: false,
+      leaderboardDisplayed: false,
+      position: 0,
+      loading: true,
+      question: null,
+      lastQuestion: false,
+      usrId: 1,
+      ttlData: "Quiz Ranking",
+      clrData: {
+        transparent: "rgb(255,255,255, 0.0)",
+
+        firstPlace: "rgb(241, 244, 58, 0.9)",
+        firstPlaceBorder: "rgb(241, 244, 58)",
+        firstPlaceText: "rgb(203, 207, 35)",
+
+        secondPlace: "rgb(196, 196, 196, 0.9)",
+        secondPlaceBorder: "rgb(196, 196, 196)",
+        secondPlaceText: "rgb(153, 153, 153)",
+
+        thirdPlace: "rgb(198, 170, 85, 0.9)",
+        thirdPlaceBorder: "rgb(198, 170, 85)",
+        thirdPlaceText: "rgb(171, 148, 79)"
+      },
+      qstnData: {
+        title: ""
+      },
+      usrData: [
+        {
+          id: 1,
+          username: typeof this.$route.params.userName == "undefined"
+            ? "Hardcoded Name"
+            : this.$route.params.userName,//this.$store.state.authLogin.user.username,
+          score: 100,
+          avatarUrl: typeof this.$route.params.userAvatarUrl == "undefined"
+            ? ""
+            : this.$route.params.userAvatarUrl
+        }
+      ],
+      ansrData: [
+        /*
+        {
+          letter: "A",
+          description: "Yes",
+          results: 0,
+          color: '#D739BD',
+          correct: false,
+          chosen: false
+        }
+        */
+      ],
+      ansrColors: ['#D739BD','#6FCF97','#EB5757','#EBEE47'],
+      ansrLetters: ['A','B','C','D']
+    };
+  },
+  mounted() {
+    this.loadQuestion();
+  },
   methods: {
     getSelectedAnswer: function(value) {
       this.selectedAnsr = value
       this.updateSelectedAnswer(value)
       console.log(value)
+      console.log("Hash " + this.$route.params.userHash)
+      console.log("Token " + this.$route.params.userToken + " -> " + this.USER_TOKEN)
+      console.log("Name " + this.$route.params.userName)
+      console.log("Avatar " + this.$route.params.userAvatarUrl)
     },
     next: function() {
-      if (this.position >= this.questionHashes.length - 1 && this.chartDisplayed) {
+      if (this.position >= this.questions.length - 1 && this.chartDisplayed) {
         return;
       }
       if (this.chartDisplayed) {
@@ -78,43 +169,36 @@ export default {
     },
     loadQuestion: function() {
       this.loading = true;
-      QuestionRepository.getQuestion(
-        this.questionHashes[this.position],
-        this.$store.state.authLogin.token
-      ).then(response => {
-        let data = response.data.var[0];
-        AnswerRepository.getAnswerGroup(
-          data.vogh,
-          this.$store.state.authLogin.token
-        ).then(answerGroupResponse => {
-          let answerGroupData = answerGroupResponse.data;
-          AnswerRepository.getAnswerGroupAnswers(
-            answerGroupData.varoptiongroup[0].vogh,
-            this.$store.state.authLogin.token
-          ).then(answerResponse => {
-            this.loading = false;
-            console.log(answerResponse.data.varoptiongroup);
-            this.question = {
-              title: data.label,
-              answers: answerResponse.data.varoptiongroup
-            };
-            this.checkLastQuestion();
+      let question = this.questions[this.position]
+      let questionAnswers = question.answerGroup.answers
+      console.log('!!!!!!!!!!!!!!', question, " ", questionAnswers)
+      this.question = {
+        title: question.label,
+        answers: questionAnswers
+      };
+      this.checkLastQuestion();
+      this.qstnData.title = question.label
 
-            // Doughnut chart data
-            this.qstnData.title = data.label
-            console.log("TESTIN " + answerResponse.data.varoptiongroup)
-            let index = 0
-            this.currentAnswerGroup = answerResponse.data.varoptiongroup
-            answerResponse.data.varoptiongroup.forEach(element => {
-              this.ansrData[index].description = element.label
-              this.ansrData[index].correct = (element.weight == 1 || element.value == 1)  
-              this.ansrData[index].chosen = false
-              this.ansrData[index].results = 0
-              index++
-            });
-          });
+
+      let index = 0
+      if (this.ansrData.length == 0) {
+        questionAnswers.forEach(element => {
+          this.ansrData.push(
+            {
+              'letter': this.ansrLetters[index],
+              'description': element.label,
+              'results': 0,
+              'color': this.ansrColors[index],
+              'correct': (element.weight >= 1 || element.value >= 1),
+              'chosen': false
+            }
+          )
+          index++
         });
-      });
+      }
+      
+      this.currentAnswerGroup = questionAnswers
+      this.loading = false;
     },
     updateSelectedAnswer: function(chosenAnswerName) {
       let index = 0
@@ -132,137 +216,12 @@ export default {
       });
     },
     checkLastQuestion: function() {
-      if (this.position == this.questionHashes.length - 1) {
+      if (this.position == this.questions.length - 1) {
         this.lastQuestion = true;
       } else {
         this.lastQuestion = false;
       }
     }
-  },
-  components: {
-    QuizHeader,
-    CompletionQuestionCard,
-    DoughnutChart,
-    LeaderboardComponent,
-    MiniLeaderboardComponent
-  },
-  data() {
-    return {
-      currentAnswerGroup: [],
-      selectedAnsr: '',
-      chartDisplayed: false,
-      leaderboardDisplayed: false,
-      position: 0,
-      loading: true,
-      question: null,
-      lastQuestion: false,
-      bg: 1,
-      qstnData: {
-        title: "Is this a question?",
-        description: "Is this the detailed description of the question?"
-      },
-      ansrData: [
-        {
-          letter: "A",
-          description: "Yes",
-          results: 0,
-          color: '#D739BD',
-          correct: false,
-          chosen: false
-        },
-        {
-          letter: "B",
-          description: "No",
-          results: 0,
-          color: '#6FCF97',
-          correct: false,
-          chosen: false
-        },
-        {
-          letter: "C",
-          description: "???",
-          results: 0,
-          color: '#EB5757',
-          correct: false,
-          chosen: false
-        },
-        {
-          letter: "D",
-          description: "Maybe",
-          results: 0,
-          color: '#EBEE47',
-          correct: false,
-          chosen: false
-        }
-      ],
-      usrId: 6,
-      ttlData: "Quiz Ranking",
-      clrData: {
-        transparent: "rgb(255,255,255, 0.0)",
-
-        firstPlace: "rgb(241, 244, 58, 0.9)",
-        firstPlaceBorder: "rgb(241, 244, 58)",
-        firstPlaceText: "rgb(203, 207, 35)",
-
-        secondPlace: "rgb(196, 196, 196, 0.9)",
-        secondPlaceBorder: "rgb(196, 196, 196)",
-        secondPlaceText: "rgb(153, 153, 153)",
-
-        thirdPlace: "rgb(198, 170, 85, 0.9)",
-        thirdPlaceBorder: "rgb(198, 170, 85)",
-        thirdPlaceText: "rgb(171, 148, 79)"
-      },
-      usrData: [
-        {
-          id: 1,
-          username: this.$store.state.authLogin.user.username,//"User 1",
-          score: 100
-        },
-        {
-          id: 2,
-          username: "User 2",
-          score: 80
-        },
-        {
-          id: 3,
-          username: "User 3",
-          score: 70
-        },
-        {
-          id: 4,
-          username: "User 4",
-          score: 60
-        },
-        {
-          id: 5,
-          username: "User 5",
-          score: 50
-        },
-        {
-          id: 6,
-          username: "User 6",
-          score: 40
-        },
-        {
-          id: 7,
-          username: "User 7",
-          score: 30
-        },
-        {
-          id: 8,
-          username: "User 8",
-          score: 20
-        },
-        {
-          id: 9,
-          username: "User 9",
-          score: 10
-        }
-      ]
-    };
-  },
-  mounted() {
-    this.loadQuestion();
   }
 };
 </script>

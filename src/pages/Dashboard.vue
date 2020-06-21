@@ -73,12 +73,13 @@ export default {
         return;
       }
 
+      this.$store.dispatch("waitingRoom/setInvitationCode", {
+        invitationCode: code
+      });
+
       this.$router.push({
         name: "waitingroom",
         params: {
-          inviteCode: code,
-          title: this.title,
-          formHash: this.fh,
           socket: this.socket
         }
       });
@@ -296,6 +297,11 @@ export default {
         return;
       }
       this.socket.open();
+
+      this.$store.dispatch("waitingRoom/setTitle", { title: title });
+      this.$store.dispatch("waitingRoom/setFormHash", { formHash: fh });
+
+      console.log("formHash: ", fh);
 
       this.socket.emit("createRoomRequest", {
         title: title,

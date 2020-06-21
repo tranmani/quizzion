@@ -1,57 +1,32 @@
 <template>
   <q-page class="flex flex-center">
     <CompletionCard
-      v-if="questionHashes != null"
-      v-bind:label="label"
-      v-bind:questionHashes="questionHashes"
+      v-if="questions != null"
+      v-bind:label="title"
+      v-bind:questions="questions"
       v-bind:theme="theme"
+      v-bind:socket="socket"
     />
   </q-page>
 </template>
 
 <script>
+import { mapGetters, mapActions } from "vuex";
 import CompletionCard from "../components/CompletionCard";
 import QuizTemplateRepository from "../remote/quiz/QuizTemplateRepository";
+import QuizFormRepository from "../remote/quiz/QuizFormRepository";
+
 export default {
   name: "CompleteQuiz",
+  props: ["title", "questions", "socket"],
   data() {
     return {
-      label: "",
-      tn: "47sh6yh7m",
       questionHashes: null,
       theme: 1
     };
   },
   components: {
     CompletionCard
-  },
-  methods: {
-    loadTemplateContent: function() {
-      //   if (ten == null) {
-      //       return;
-      //   }
-      QuizTemplateRepository.getTemplate(
-        this.tn,
-        this.$store.state.authLogin.token
-      ).then(response => {
-        this.label = response.data.template.label;
-      });
-
-      QuizTemplateRepository.getTemplateContent(
-        this.tn,
-        this.$store.state.authLogin.token
-      ).then(response => {
-        let data = response.data;
-        let content = data.content.content;
-        let questionHashes = JSON.parse(content).questions
-        this.theme = JSON.parse(content).properties.theme
-        this.questionHashes = questionHashes;
-        console.log(questionHashes);
-      });
-    }
-  },
-  mounted() {
-    this.loadTemplateContent();
   }
 };
 </script>

@@ -4,6 +4,7 @@ import SingleQuizModule from './quiz-module2'
 
 import authLogin from './authLogin'
 import quizzes from './dashboard-module'
+import waitingRoom from './waitingroom-module/waitingRoom'
 
 Vue.use(Vuex)
 
@@ -25,6 +26,7 @@ export default function ( /* { ssrContext } */) {
       authLogin,
       quiz: {},
       SingleQuizModule,
+      waitingRoom
     },
     // enable strict mode (adds overhead!)
     // for dev mode only

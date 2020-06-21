@@ -1,5 +1,5 @@
 <template>
-    <q-page v-if="loaded" class="quiz-editor flex">
+  <q-page v-if="loaded" class="quiz-editor flex">
     <div class="question-listing" :class="`theme-${this.getQuiz.theme}`">
       <div class="question-listing-add">
         <q-btn color="white" text-color="black" style="float:left" @click="back">
@@ -36,7 +36,7 @@
         ></EditorQuestionBar>
       </div>
     </div>
-    </q-page>
+  </q-page>
 </template>
 
 <script>
@@ -253,7 +253,7 @@ export default {
         properties: {
           label: "label in content property",
           theme: this.getQuiz.theme,
-          timeLimit: this.getQuiz.timeLimit,
+          timeLimit: parseInt(this.getQuiz.timeLimit),
           playTimes: 0,
           averagePass: 0
         },
@@ -331,7 +331,7 @@ export default {
         type: "quiz",
         properties: {
           theme: this.getQuiz.theme,
-          timeLimit: this.getQuiz.timeLimit
+          timeLimit: parseInt(this.getQuiz.timeLimit)
         },
         questions: this.quiz.questions
       };
@@ -450,7 +450,7 @@ export default {
           type: "quiz",
           properties: {
             theme: this.quiz.theme,
-            timeLimit: this.quiz.timeLimit
+            timeLimit: parseInt(this.quiz.timeLimit)
           },
           questions: this.quiz.questions
         };
@@ -499,7 +499,7 @@ export default {
 
     updateListing(question) {
       this.questions.forEach(q => {
-        if(q.position === question.position) {
+        if (q.position === question.position) {
           q = question;
         }
       });

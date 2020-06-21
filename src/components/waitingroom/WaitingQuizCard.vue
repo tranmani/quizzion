@@ -10,12 +10,7 @@
       </div>
       <div class="loading">
         <div class="row justify-center">
-          <q-spinner
-            class="row justify-center"
-            :showing="true"
-            size="55px"
-            color="secondary"
-          />
+          <q-spinner class="row justify-center" :showing="true" size="55px" color="secondary" />
         </div>
       </div>
     </q-card-section>
@@ -29,9 +24,6 @@ export default {
 </script>
 
 <style scoped>
-.my-card {
-  width: 60%;
-}
 .loading-title {
   margin-top: 32px;
   font-size: 18px;

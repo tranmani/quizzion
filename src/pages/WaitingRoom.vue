@@ -1,9 +1,26 @@
 <template>
   <q-page class="main-page flex flex-center">
-    <WaitingQuizCard v-bind:title="title" />
+    <WaitingQuizCard class="my-card" v-bind:title="getTitle.title" />
 
-    <q-drawer show-if-above side="right" bordered>
-      <InvitationView v-if="modPage" v-bind:code="inviteCode" />
+    <q-dialog v-model="showNoParticipants">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">No Participants</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          At least one participant is required to start quiz. Invite
+          participants using invitation code.
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="OK" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- <q-drawer class="user-drawer" show-if-above side="right" bordered :breakpoint="300">
+      <InvitationView v-if="modPage" v-bind:code="getInvitationCode.invitationCode" />
       <div class="title text-h8">Participants</div>
       <q-separator />
       <q-scroll-area class="user-list">
@@ -31,14 +48,78 @@
           </div>
         </div>
       </div>
+    </q-drawer>-->
+
+    <q-drawer
+      v-model="drawer"
+      class="user-drawer"
+      show-if-above
+      side="right"
+      :mini="miniState"
+      @click.capture="drawerClick"
+      :breakpoint="200"
+      bordered
+      :mini-to-overlay="mobile"
+      elevated
+    >
+      <template v-slot:mini>
+        <div class="q-py-md">
+          <div class="column flex flex-center">
+            <q-icon v-if="modPage" name="code" color="accent" size="35px" />
+            <q-icon name="people" color="blue" size="35px" />
+          </div>
+        </div>
+      </template>
+
+      <InvitationView v-if="modPage" v-bind:code="getInvitationCode.invitationCode" />
+      <div class="title text-h8">Participants</div>
+      <q-separator />
+      <q-scroll-area class="user-list">
+        <q-list v-if="participants.length != 0">
+          <UserCard
+            class="usercard"
+            v-for="item in participants"
+            v-bind:key="item.userHash"
+            v-bind:avatarUrl="item.avatarUrl"
+            v-bind:username="item.username"
+          />
+        </q-list>
+      </q-scroll-area>
+      <div v-if="modPage">
+        <q-separator />
+        <div class="absolute-bottom">
+          <div class="button-holder row justify-center">
+            <q-btn
+              center
+              class="button"
+              style="color: white"
+              label="Start quiz"
+              v-on:click="startQuiz"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div v-if="mobile" class="q-mini-drawer-hide absolute" style="top: 15px; left: -17px">
+        <q-btn
+          dense
+          round
+          unelevated
+          color="primary"
+          icon="chevron_right"
+          @click="miniState = true"
+        />
+      </div>
     </q-drawer>
   </q-page>
 </template>
 
 <script>
+import { mapGetters, mapActions } from "vuex";
 import UserCard from "../components/waitingroom/UserCard";
 import WaitingQuizCard from "../components/waitingroom/WaitingQuizCard";
 import InvitationView from "../components/waitingroom/InvitationView";
+import QuestionFetcher from "../remote/quiz/QuestionFetcher";
 import io from "socket.io-client";
 
 export default {
@@ -47,26 +128,99 @@ export default {
     WaitingQuizCard,
     InvitationView
   },
-  props: ["title", "formHash", "inviteCode", "socket"],
+  computed: {
+    ...mapGetters("waitingRoom", [
+      "getTitle",
+      "getInvitationCode",
+      "getFormHash"
+    ]),
+    ...mapGetters("authLogin", ["token"])
+  },
+  props: ["socket"], //, "hash", "tkn", "usrname", "avatarUrl"],
   data() {
     return {
       modPage: false,
-      participants: []
+      participants: [],
+      showNoParticipants: false,
+      questions: null,
+      miniState: false,
+      drawer: false,
+      width: 0,
+      mobile: false
     };
   },
   methods: {
-    startQuiz() {
-      if (participants.length == 0) {
+    async startQuiz() {
+      if (this.participants.length == 0) {
+        this.showNoParticipants = true;
         return;
       }
+
+      if (this.questions.length == 0) {
+        console.log("Can't start quiz no questions loaded");
+        return;
+      }
+
+      this.socket.emit("start_quiz_request", { questions: this.questions });
+    },
+    navigateToCompleteQuiz(questionsResponse) {
+      console.log("last pass", this.$route.params);
+      this.$router.push({
+        name: "completequiz",
+        params: {
+          title: this.getTitle.title,
+          questions: questionsResponse,
+          userHash: this.$route.params.hash,
+          userToken: this.$route.params.tkn,
+          userName: this.$route.params.usrname,
+          userAvatarUrl: this.$route.params.avatarUrl,
+          socket: this.socket
+        }
+      });
+    },
+    drawerClick(e) {
+      if (this.miniState) {
+        this.miniState = false;
+        e.stopPropagation();
+      }
+    },
+    onResize() {
+      if (window.innerWidth <= 600) {
+        this.miniState = true;
+        this.mobile = true;
+      } else {
+        this.miniState = false;
+        this.mobile = false;
+      }
+      this.width = window.innerWidth;
     }
   },
-  mounted() {
-    this.title = this.$route.params.title;
-    this.formHash = this.$route.params.formHash;
-    this.inviteCode = this.$route.params.inviteCode;
-    this.socket = this.$route.params.socket;
-    this.modPage = this.inviteCode != undefined;
+  async mounted() {
+    this.modPage = this.getInvitationCode.invitationCode != undefined;
+
+    if (this.modPage) {
+      this.questions = await QuestionFetcher.loadQuestions(
+        this.getFormHash.formHash,
+        this.token
+      );
+
+      console.log("Questions in waitingRoom: ", this.questions);
+    }
+
+    this.socket.on("quiz_start_response", response => {
+      console.log("QUIZ START RESPONSE: ", response);
+
+      if (response.questions == undefined) {
+        console.log("No Questions");
+        return;
+      }
+
+      if (this.modPage) {
+        console.log("Mod page so nothing happens");
+      } else {
+        this.navigateToCompleteQuiz(response.questions);
+      }
+    });
   },
   created() {
     if (this.socket == undefined) return;
@@ -76,6 +230,19 @@ export default {
       this.participants = users;
       console.log(users);
     });
+
+    window.addEventListener("resize", this.onResize);
+    if (window.innerWidth <= 600) {
+      this.miniState = true;
+      this.mobile = true;
+    } else {
+      this.miniState = false;
+      this.mobile = false;
+    }
+    this.width = window.innerWidth;
+  },
+  beforeDestroy() {
+    window.removeEventListener("resize", this.onResize);
   }
 };
 </script>
@@ -113,5 +280,30 @@ export default {
   margin-right: 24px;
   border-radius: 20px;
   margin-bottom: 24px;
+}
+
+.my-card {
+  width: 60%;
+}
+
+.user-drawer {
+}
+
+@media only screen and (max-width: 1000px) {
+  .my-card {
+    width: 80%;
+  }
+}
+
+@media only screen and (max-width: 800px) {
+  .my-card {
+    width: 90%;
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  .my-card {
+    width: 80%;
+  }
 }
 </style>
