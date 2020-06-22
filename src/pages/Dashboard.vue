@@ -59,7 +59,7 @@ export default {
       this.getUser(this.token);
     }
     this.sortQuizzes(this.sortState);
-    this.socket = io("http://3.212.180.89:3000", {
+    this.socket = io("//3.212.180.89:3000", {
       autoConnect: false
     });
   },

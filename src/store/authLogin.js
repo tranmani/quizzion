@@ -16,7 +16,7 @@ export default {
   mutations: {
     SET_TOKEN(state, token) {
       state.token = token
-      Cookies.set('token', token, { expires: "1h 59m 59s", sameSite: 'none' })
+      Cookies.set('token', token, { expires: "1h 59m 59s", sameSite: 'None' })
     },
 
     SET_USER(state, userProfile) {
