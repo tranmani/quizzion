@@ -85,7 +85,7 @@ export default {
     ...mapGetters("authLogin", ["token"])
   },
   mounted() {
-    this.socket = io("http://localhost:3000", {
+    this.socket = io("http://3.212.180.89:3000", {
       autoConnect: false
     });
     this.socket.on("join_room_response", response => {
