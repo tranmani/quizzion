@@ -47,11 +47,24 @@ export default {
             headers: { 'X-CSRFToken': xcsrfToken }
         })
     },
-    getQuizFormBulkData(formHash, questionName, xcsrfToken) {
+    getQuizFormBulkData(formHash, questionName, userXCSRFToken) {
+        console.log("ASDSADASDASDASDASDSADASD!!@!@!@!@!", questionName)
         return AxiosClient({
             method: 'get',
             url: `/v51/data/bulk?vars[]=sur_serial&vars[]=frm_progress&vars[]=email&vars[]=frm_date&vars[]=${questionName}&forms=${formHash}`,
-            headers: { 'X-CSRFToken': xcsrfToken }
+            headers: { 'X-CSRFToken': userXCSRFToken }
+        })
+    },
+    submitAnswer(questionName, answerName, userXCSRFToken) {
+        let varsInit = {}
+        varsInit[questionName] = answerName
+        return AxiosClient({
+            method: 'put',
+            url: `/v51/data`,
+            body: {
+                vars: varsInit
+            },
+            headers: { 'X-CSRFToken': userXCSRFToken }
         })
     }
 };

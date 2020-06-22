@@ -1,33 +1,32 @@
 import axios from 'axios'
+import { Cookies } from 'quasar'
 
 const baseURL = "https://backend.dev.parantion.nl/backend/api";
 const access = "/v51/account/access";
-const header = {headers: { 'X-Database': 'lab'}}
+const header = { headers: { 'X-Database': 'lab' } }
 
 export default {
   namespaced: true,
 
   state: {
-    token: window.sessionStorage.getItem('token'),
-    user: {}//window.sessionStorage.getItem('user')
+    token: Cookies.get('token'),
+    user: {}
   },
 
   mutations: {
-    SET_TOKEN (state, token){
+    SET_TOKEN(state, token) {
       state.token = token
-      window.sessionStorage.setItem('token', token)
+      Cookies.set('token', token, { expires: "1h 59m 59s", sameSite: 'none' })
     },
 
     SET_USER(state, userProfile) {
       state.user = userProfile;
-      window.sessionStorage.setItem('user', userProfile)
     },
 
     logout(state) {
       state.token = null
       state.user = null
-      window.sessionStorage.removeItem('token')
-      window.sessionStorage.removeItem('user')
+      Cookies.remove('token')
     }
   },
 

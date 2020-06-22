@@ -66,7 +66,8 @@ export default {
             const question = {
                 label: data.label,
                 vogh: data.vogh,
-                vh: data.vh
+                vh: data.vh,
+                name: data.name
             }
 
             questions.push(question);

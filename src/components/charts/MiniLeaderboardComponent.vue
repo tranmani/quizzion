@@ -10,7 +10,7 @@
                 </div>
                 <div class="pic" v-bind:style="{ backgroundImage: 'url(' + this.userData[1].avatarUrl + ')' }"></div>
                 <div class="name">
-                  {{ this.userData[1].username }}
+                  {{ this.userData[1].userHash == userHash ? 'You' : this.userData[1].username }}
                 </div>
                 <div class="score">
                   {{ this.userData[1].score }}
@@ -24,7 +24,7 @@
                 </div>
                 <div class="pic" v-bind:style="{ backgroundImage: 'url(' + this.userData[0].avatarUrl + ')' }"></div>
                 <div class="name">
-                  {{ this.userData[0].username }}
+                  {{ this.userData[0].userHash == userHash ? 'You' : this.userData[0].username }}
                 </div>
                 <div class="score">
                   {{ this.userData[0].score }}
@@ -38,7 +38,7 @@
                 </div>
                 <div class="pic" v-bind:style="{ backgroundImage: 'url(' + this.userData[2].avatarUrl + ')' }"></div>
                 <div class="name">
-                  {{ this.userData[2].username }}
+                  {{ this.userData[2].userHash == userHash ? 'You' : this.userData[2].username }}
                 </div>
                 <div class="score">
                   {{ this.userData[2].score }}
@@ -59,7 +59,7 @@ export default {
   },
   mounted () {
   },
-  props: ['titleData', 'userData', 'colorData', 'userId']
+  props: ['userData', 'colorData', 'userHash']
 }
 </script>
 

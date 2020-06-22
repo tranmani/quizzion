@@ -22,12 +22,10 @@ export default {
   },
   created() {
     this.socket.on("quiz_timer_response", response => {
-      console.log(response);
-
       if (response.running) {
         this.seconds = response.tick;
       } else {
-        // do something if time running out
+        this.$emit("timerFinish");
       }
     });
   },

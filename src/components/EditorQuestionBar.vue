@@ -46,7 +46,13 @@ export default {
   },
   data() {
     return {
-      question: {},
+      question: {
+        label: "Add text",
+        position: 1,
+        vartype: "item",
+        datatype: "varoption",
+        answers: []
+      },
       options: {
         multipleDropzonesItemsDraggingEnabled: false,
         dropzoneSelector: ".q-list",
@@ -63,9 +69,11 @@ export default {
   },
   created() {
     Object.assign(this.question, this.getQuestion);
+    console.log(this.question);
     this.question.answers.sort((a, b) => (a.position > b.position) ? 1 : -1)
     this.currentPlace = this.getPositionString(this.question.answers.length+1);
-    console.log("current place is ", this.currentPlace);
+  },
+  mounted() {
   },
   methods: {
     ...mapActions("SingleQuizModule", ["saveStateQuestion"]),
@@ -160,6 +168,18 @@ export default {
           break;
         default:
           break;
+      }
+    },
+
+    validEmbeddedLink(link) {
+      if(link.length > 0) {
+        return link.contains("src=\"https://www.youtube.com/embed/");
+      } else  {
+        /*
+        * Since an embedded video is not required,
+        * We can just return true when it hasn't been filled in.
+        */
+        return true;
       }
     },
 

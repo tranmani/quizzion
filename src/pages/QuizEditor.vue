@@ -274,47 +274,44 @@ export default {
           this.getQuiz.tn = res.data.tn;
           this.newQuiz = false;
           var voghs = '{"question_hashes":[]}';
-
-          console.log(this.questions);
-          this.questions.forEach(question => {
-            var questionAdd = {
+          QuizFormRepository.postQuizForm(
+            this.getQuiz.title,
+            "survey",
+            res.data.tn,
+            this.token
+          ).then(res2 => {
+            this.questions.forEach(question => {
+              var questionAdd = {
               label: question.label,
               vartype: "item",
               datatype: "varoption",
               isNew: true
             };
+            var position = this.count++;
+            var q = "question" + position;
+            // Add an answer group for a question.
+            AnswerRepository.postAnswerGroup(question.label, 1, this.token)
+              .then(res3 => {
+                question.vogh = res3.data.vogh;
 
-            QuizFormRepository.postQuizForm(
-              this.getQuiz.title,
-              "survey",
-              res.data.tn,
-              this.token
-            ).then(res2 => {
-              var position = this.count++;
-              var q = "question" + position;
-              // Add an answer group for a question.
-              AnswerRepository.postAnswerGroup(question.label, 1, this.token)
-                .then(res3 => {
-                  question.vogh = res3.data.vogh;
-
-                  // Add answers to a question.
-                  question.answers.forEach(answer => {
-                    this.saveAnswer(answer, res3.data.vogh, this.token, false);
-                    position++;
-                  });
-
-                  questionAdd.vogh = res3.data.vogh;
-
-                  this.saveQuestion(questionAdd, res.data.tn, quizContent);
-                  // reload dashboard
-                  this.setLoaded("false");
-                })
-                .catch(err => {
-                  this.$q.notify({
-                    type: "negative",
-                    message: `Failed to postAnswerGroup ${err}`
-                  });
+                // Add answers to a question.
+                question.answers.forEach(answer => {
+                  this.saveAnswer(answer, res3.data.vogh, this.token, false);
+                  position++;
                 });
+
+                questionAdd.vogh = res3.data.vogh;
+
+                this.saveQuestion(questionAdd, res.data.tn, quizContent);
+                // reload dashboard
+                this.setLoaded("false");
+              })
+              .catch(err => {
+                this.$q.notify({
+                  type: "negative",
+                  message: `Failed to postAnswerGroup ${err}`
+                });
+              });
             });
           });
         })

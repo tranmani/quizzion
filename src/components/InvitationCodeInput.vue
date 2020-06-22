@@ -78,7 +78,8 @@ export default {
       userHash: "",
       userToken: "",
       userName: "",
-      userAvatarUrl: ""
+      userAvatarUrl: "",
+      frmHash: ""
     };
   },
   computed: {
@@ -95,22 +96,24 @@ export default {
         this.roomTitle = response.quiz.title;
         this.formHash = response.quiz.formHash;
 
-        console.log("WHOLE RESPONSE", response)
+        console.log("WHOLE RESPONSE", response);
         // check if already logged in
         if (this.token == null) {
           this.enterName(response.user.userHash);
         } else {
           // TODO: wait for user info to save in session so we don't have to get user data
           this.getUser(this.token, response.user.userHash);
-          this.userName = response.user.username
+          this.userName = response.user.username;
         }
-        this.userHash = response.user.userHash
-        this.userToken = response.user.accessToken
-        this.userAvatarUrl = response.user.avatarUrl
-        console.log("User Hash: " + this.userHash)
-        console.log("User Token: " + this.userToken)
-        console.log("User Name: " + this.userName)
-        console.log("User Avatar: " + this.userAvatarUrl)
+        this.userHash = response.user.userHash;
+        this.userToken = response.user.accessToken;
+        this.userAvatarUrl = response.user.avatarUrl;
+        this.frmHash = response.quiz.formHash;
+        console.log("User Hash: " + this.userHash);
+        console.log("User Token: " + this.userToken);
+        console.log("User Name: " + this.userName);
+        console.log("User Avatar: " + this.userAvatarUrl);
+        console.log("Form Hash: " + this.frmHash);
       }
     });
 
@@ -136,7 +139,8 @@ export default {
               hash: this.userHash,
               tkn: this.userToken,
               usrname: this.userName,
-              avatarUrl: this.userAvatarUrl
+              avatarUrl: this.userAvatarUrl,
+              frmHash: this.frmHash
             }
           });
         } else {
@@ -182,14 +186,14 @@ export default {
           message: "Your name you wanted to use",
           prompt: {
             model: "",
-            isValid: val => val.length > 2,
+            isValid: val => val.length > 1,
             type: "text"
           },
           cancel: true,
           persistent: true
         })
         .onOk(data => {
-          this.userName = data
+          this.userName = data;
           this.socket.emit("add_username_request", {
             userHash: uh,
             username: data

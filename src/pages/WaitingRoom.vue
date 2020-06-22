@@ -1,6 +1,6 @@
 <template>
   <q-page class="main-page flex flex-center">
-    <WaitingQuizCard class="my-card" v-bind:title="getTitle.title" />
+    <WaitingQuizCard class="title-card" v-bind:title="getTitle.title" />
 
     <q-dialog v-model="showNoParticipants">
       <q-card>
@@ -19,40 +19,8 @@
       </q-card>
     </q-dialog>
 
-    <!-- <q-drawer class="user-drawer" show-if-above side="right" bordered :breakpoint="300">
-      <InvitationView v-if="modPage" v-bind:code="getInvitationCode.invitationCode" />
-      <div class="title text-h8">Participants</div>
-      <q-separator />
-      <q-scroll-area class="user-list">
-        <q-list v-if="participants.length != 0">
-          <UserCard
-            class="usercard"
-            v-for="item in participants"
-            v-bind:key="item.userHash"
-            v-bind:avatarUrl="item.avatarUrl"
-            v-bind:username="item.username"
-          />
-        </q-list>
-      </q-scroll-area>
-      <div v-if="modPage">
-        <q-separator />
-        <div class="absolute-bottom">
-          <div class="button-holder row justify-center">
-            <q-btn
-              center
-              class="button"
-              style="color: white"
-              label="Start quiz"
-              v-on:click="startQuiz"
-            />
-          </div>
-        </div>
-      </div>
-    </q-drawer>-->
-
     <q-drawer
       v-model="drawer"
-      class="user-drawer"
       show-if-above
       side="right"
       :mini="miniState"
@@ -65,8 +33,8 @@
       <template v-slot:mini>
         <div class="q-py-md">
           <div class="column flex flex-center">
-            <q-icon v-if="modPage" name="code" color="accent" size="35px" />
-            <q-icon name="people" color="blue" size="35px" />
+            <q-icon v-if="modPage" name="code" color="primary" size="35px" />
+            <q-icon class="q-pt-md" name="people" color="secondary" size="35px" />
           </div>
         </div>
       </template>
@@ -77,7 +45,7 @@
       <q-scroll-area class="user-list">
         <q-list v-if="participants.length != 0">
           <UserCard
-            class="usercard"
+            class="user-card"
             v-for="item in participants"
             v-bind:key="item.userHash"
             v-bind:avatarUrl="item.avatarUrl"
@@ -100,7 +68,7 @@
         </div>
       </div>
 
-      <div v-if="mobile" class="q-mini-drawer-hide absolute" style="top: 15px; left: -17px">
+      <div v-if="mobile" class="absolute" style="top: 15px; left: -17px">
         <q-btn
           dense
           round
@@ -136,7 +104,7 @@ export default {
     ]),
     ...mapGetters("authLogin", ["token"])
   },
-  props: ["socket"], //, "hash", "tkn", "usrname", "avatarUrl"],
+  props: ["socket"],//, "hash", "tkn", "usrname", "avatarUrl", "frmHash", "participants"],
   data() {
     return {
       modPage: false,
@@ -165,6 +133,10 @@ export default {
     },
     navigateToCompleteQuiz(questionsResponse) {
       console.log("last pass", this.$route.params);
+      // add a 0 score to everyone
+      this.participants.forEach(function (element) {
+        element.score = 0;
+      });
       this.$router.push({
         name: "completequiz",
         params: {
@@ -174,7 +146,9 @@ export default {
           userToken: this.$route.params.tkn,
           userName: this.$route.params.usrname,
           userAvatarUrl: this.$route.params.avatarUrl,
-          socket: this.socket
+          formHash: this.$route.params.frmHash,
+          socket: this.socket,
+          participants: this.participants
         }
       });
     },
@@ -246,7 +220,7 @@ export default {
   }
 };
 </script>
-<style scoped>
+<style lang="scss" scoped>
 .main-page {
   background-image: linear-gradient(90deg, #fee140 0%, #fa709a 100%);
 }
@@ -261,7 +235,7 @@ export default {
   font-weight: bold;
   color: gray;
 }
-.usercard {
+.user-card {
   margin-top: 8px;
   margin-bottom: 8px;
   margin-left: 16px;
@@ -282,28 +256,25 @@ export default {
   margin-bottom: 24px;
 }
 
-.my-card {
+.title-card {
   width: 60%;
 }
 
-.user-drawer {
-}
-
 @media only screen and (max-width: 1000px) {
-  .my-card {
+  .title-card {
     width: 80%;
   }
 }
 
 @media only screen and (max-width: 800px) {
-  .my-card {
+  .title-card {
     width: 90%;
   }
 }
 
 @media only screen and (max-width: 600px) {
-  .my-card {
-    width: 80%;
+  .title-card {
+    width: 85%;
   }
 }
 </style>

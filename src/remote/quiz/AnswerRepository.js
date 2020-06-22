@@ -73,7 +73,6 @@ export default {
         })
     },
     updateAnswer(answer, varOptionGroupHash, xcsrfToken) {
-
         return AxiosClient({
             method: 'put',
             url: `${endpoint}/${varOptionGroupHash}/option/${answer.name}`,

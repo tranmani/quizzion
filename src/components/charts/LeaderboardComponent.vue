@@ -10,7 +10,7 @@
 						</div>
 						<div class="pic" v-bind:style="{ backgroundImage: 'url(' + this.userData[1].avatarUrl + ')' }"></div>
 						<div class="name">
-							{{ this.userData[1].username }}
+							{{ this.userData[1].userHash == userHash ? 'You' : this.userData[1].username }}
 						</div>
 						<div class="score">
 							{{ this.userData[1].score }}
@@ -24,7 +24,7 @@
 						</div>
 						<div class="pic" v-bind:style="{ backgroundImage: 'url(' + this.userData[0].avatarUrl + ')' }"></div>
 						<div class="name">
-							{{ this.userData[0].username }}
+							{{ this.userData[0].userHash == userHash ? 'You' : this.userData[0].username }}
 						</div>
 						<div class="score">
 							{{ this.userData[0].score }}
@@ -38,7 +38,7 @@
 						</div>
 						<div class="pic" v-bind:style="{ backgroundImage: 'url(' + this.userData[2].avatarUrl + ')' }"></div>
 						<div class="name">
-							{{ this.userData[2].username }}
+							{{ this.userData[2].userHash == userHash ? 'You' : this.userData[2].username }}
 						</div>
 						<div class="score">
 							{{ this.userData[2].score }}
@@ -51,13 +51,13 @@
 				v-if="typeof this.userData[3] != 'undefined'"
 				>
 				<div class="list">
-					<div v-for="(usrData, index) in userData.slice(3)" :key="index" v-bind:class="[usrData.id == userId ? 'item you' : 'item']">
+					<div v-for="(usrData, index) in userData.slice(3)" :key="index" v-bind:class="[usrData.userHash == userHash ? 'item you' : 'item']">
 					<div class="pos">
 						{{ index+4 }}
 					</div>
-					<div class="pic" v-bind:style="{ backgroundImage: 'url(' + this.userData[index+3].avatarUrl + ')' }"></div>
+					<div class="pic" v-bind:style="{ backgroundImage: 'url(' + usrData.avatarUrl + ')' }"></div>
 					<div class="name">
-						<b>{{ usrData.id == userId ? 'You' : usrData.username }}</b>
+						<b>{{ usrData.userHash == userHash ? 'You' : usrData.username }}</b>
 					</div>
 					<div class="score">
 						{{ usrData.score }}
@@ -78,7 +78,7 @@ export default {
   },
   mounted () {
   },
-  props: ['titleData', 'userData', 'colorData', 'userId']
+  props: ['userData', 'colorData', 'userHash']
 }
 </script>
 

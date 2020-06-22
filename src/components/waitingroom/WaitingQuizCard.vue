@@ -1,5 +1,5 @@
 <template>
-  <q-card class="my-card">
+  <q-card>
     <q-card-section>
       <div class="text-h5">{{ title }}</div>
     </q-card-section>
