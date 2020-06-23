@@ -60,7 +60,8 @@ export default {
     }
     this.sortQuizzes(this.sortState);
     this.socket = io("//3.212.180.89:3000", {
-      autoConnect: false
+      autoConnect: false,
+      transport: ['websocket']
     });
   },
   mounted() {

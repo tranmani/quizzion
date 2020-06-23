@@ -87,7 +87,8 @@ export default {
   },
   mounted() {
     this.socket = io("//3.212.180.89:3000", {
-      autoConnect: false
+      autoConnect: false,
+      transport: ['websocket']
     });
     this.socket.on("join_room_response", response => {
       if (!response.user) {
