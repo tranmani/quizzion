@@ -59,7 +59,7 @@ export default {
       this.getUser(this.token);
     }
     this.sortQuizzes(this.sortState);
-    this.socket = io("//socket-example-huy.herokuapp.com:3000", {
+    this.socket = io("https://socket-example-huy.herokuapp.com", {
       autoConnect: false,
       transport: ['websocket']
     });
