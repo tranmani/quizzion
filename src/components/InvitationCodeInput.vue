@@ -86,9 +86,10 @@ export default {
     ...mapGetters("authLogin", ["token"])
   },
   mounted() {
-    this.socket = io("https://3.212.180.89:3000", {
+    this.socket = io("//3.212.180.89:3000", {
       autoConnect: false,
-      transport: ['websocket']
+      transport: ['websocket'],
+      secure: false
     });
     this.socket.on("join_room_response", response => {
       if (!response.user) {
