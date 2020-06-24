@@ -86,7 +86,7 @@ export default {
     ...mapGetters("authLogin", ["token"])
   },
   mounted() {
-    this.socket = io("//3.212.180.89:3000", {
+    this.socket = io("https://3.212.180.89:3000", {
       autoConnect: false,
       transport: ['websocket']
     });
