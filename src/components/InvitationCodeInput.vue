@@ -86,7 +86,7 @@ export default {
     ...mapGetters("authLogin", ["token"])
   },
   mounted() {
-    this.socket = io("https://socket-example-huy.herokuapp.com", {
+    this.socket = io("https://3.212.180.89", {
       autoConnect: false,
       transport: ['websocket']
     });
