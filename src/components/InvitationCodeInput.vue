@@ -86,10 +86,9 @@ export default {
     ...mapGetters("authLogin", ["token"])
   },
   mounted() {
-    this.socket = io("//3.212.180.89:3000", {
+    this.socket = io("//socket-example-huy.herokuapp.com:3000", {
       autoConnect: false,
-      transport: ['websocket'],
-      secure: false
+      transport: ['websocket']
     });
     this.socket.on("join_room_response", response => {
       if (!response.user) {
