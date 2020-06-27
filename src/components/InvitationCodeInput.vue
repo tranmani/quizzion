@@ -102,7 +102,7 @@ export default {
     ...mapGetters("authLogin", ["token"])
   },
   mounted() {
-    this.socket = io("https://3.212.180.89:3000/", {
+    this.socket = io("https://socket-example-huy.herokuapp.com", {
       autoConnect: false,
       query: {
         token: 0
