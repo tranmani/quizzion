@@ -47,7 +47,7 @@ export default {
           this.$emit("edit", this.question.name);
       },
       remove:function(questionId) {
-          this.$emit("remove", this.question.name);
+          this.$emit("remove", this.question.position);
       }
   }
 }

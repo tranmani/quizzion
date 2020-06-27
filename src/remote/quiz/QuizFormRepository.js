@@ -4,7 +4,6 @@ const endpoint = '/v51/form';
 
 export default {
     postQuizForm(label, type, templateNumber, xcsrfToken) {
-        console.log("ddd:",templateNumber)
         return AxiosClient({
             method: 'post',
             url: `${endpoint}`,

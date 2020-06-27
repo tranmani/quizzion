@@ -1,6 +1,23 @@
 <template>
   <q-page class="q-pa-md">
     <subheader v-on:sort="sortQuizzes"></subheader>
+
+    <q-dialog v-model="showActiveQuiz">
+      <q-card style="min-width: 350px">
+        <q-card-section>
+          <div class="text-h6">Quiz is still running</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <div v-if="this.activeQuiz != null">Quiz "{{ this.activeQuiz.title }}" is still running...</div>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="View" color="primary" v-close-popup v-on:click="viewRunningQuiz" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <h5 class="q-pl-md">Created quizzes:</h5>
     <q-btn @click="createQuiz">Create new hardcoded Template and Form</q-btn>
     <div v-if="!dashboardLoaded" class="row">
@@ -27,7 +44,8 @@ import SubHeader from "../components/SubHeader";
 import QuizTemplateRepository from "../remote/quiz/QuizTemplateRepository";
 import QuizFormRepository from "../remote/quiz/QuizFormRepository";
 import Authenticator from "../remote/user/Authenticator";
-import io from "socket.io-client";
+import FileRepository from "../remote/files/FileRepository";
+import SocketCommunicator from "../remote/socket/socket_communicator";
 
 export default {
   components: {
@@ -38,7 +56,9 @@ export default {
   data() {
     return {
       quizzesForDisplay: [],
-      socket: null
+      socketCommunicator: null,
+      activeQuiz: null,
+      showActiveQuiz: false
     };
   },
   computed: {
@@ -48,25 +68,32 @@ export default {
       "sortState",
       "availableTn"
     ]),
-    ...mapGetters("authLogin", ["token", "user"])
+    ...mapGetters("authLogin", ["token", "userHash", "userObject"])
   },
   created() {
+    window.addEventListener("beforeunload", this.beforeUnload);
+
+    this.socketCommunicator = new SocketCommunicator(this.userHash);
+
     if (!this.dashboardLoaded) {
       this.quizzesForDisplay = [];
       this.getAllForms();
     }
-    if (Object.keys(this.user).length === 0) {
+    if (Object.keys(this.userObject).length === 0) {
       this.getUser(this.token);
     }
     this.sortQuizzes(this.sortState);
-    this.socket = io("https://3.212.180.89", {
-      autoConnect: false,
-      transport: ['websocket']
-    });
   },
   mounted() {
-    this.socket.on("create_room_response", response => {
-      console.log(response);
+    this.socketCommunicator.on("create_room_response", response => {
+      const activeQuiz = response.activeQuiz;
+
+      console.log("activeQuiz: ", activeQuiz);
+
+      if (activeQuiz != undefined) {
+        this.showActiveQuiz = true;
+        this.activeQuiz = activeQuiz;
+      }
 
       const code = response.code;
 
@@ -78,13 +105,14 @@ export default {
         invitationCode: code
       });
 
-      this.$router.push({
-        name: "waitingroom",
-        params: {
-          socket: this.socket
-        }
-      });
+      this.$router.push({ name: "waitingroom" });
     });
+  },
+  beforeDestroy() {
+    this.socketCommunicator.socket.removeAllListeners();
+    this.socketCommunicator.socket.close();
+    this.socketCommunicator = null;
+    window.removeEventListener("beforeunload", this.beforeUnload);
   },
   methods: {
     ...mapActions("quizzes", [
@@ -94,7 +122,7 @@ export default {
       "deleteQuiz",
       "setLoaded"
     ]),
-    ...mapActions("authLogin", ["attemptUser"]),
+    ...mapActions("authLogin", ["attemptUser", "attemptUserObject"]),
     sortQuizzes(sortType) {
       if (sortType === "playTimesAsc") {
         this.quizzesForDisplay = [...this.quizzes].sort(
@@ -129,19 +157,33 @@ export default {
             let quizData = {
               tn: element.tn,
               id: element.id,
-              theme: quizContent.properties.theme || 1,
+              theme: quizContent.properties.theme,
               playTimes: quizContent.properties.playTimes || 0,
               averagePass: quizContent.properties.averagePass || 0,
               questions: quizContent.questions,
-              timeLimit: quizContent.properties.timeLimit || 0
+              timeLimit: quizContent.properties.timeLimit || 0,
+              thumbnail: quizContent.properties.thumbnail
             };
-            this.updateQuiz(quizData);
-            contentProcessed++;
 
-            if (contentProcessed === this.quizzes.length) {
-              this.sortQuizzes(this.sortState);
-              this.setLoaded();
-              // console.log(this.quizzes);
+            if (quizData.thumbnail) {
+              FileRepository.getFileLink(quizData.thumbnail, this.token).then(
+                res => {
+                  quizData.thumbnailUrl = res.data.file[0].link;
+                  this.updateQuiz(quizData);
+                  contentProcessed++;
+                  if (contentProcessed === this.quizzes.length) {
+                    this.sortQuizzes(this.sortState);
+                    this.setLoaded();
+                  }
+                }
+              );
+            } else {
+              this.updateQuiz(quizData);
+              contentProcessed++;
+              if (contentProcessed === this.quizzes.length) {
+                this.sortQuizzes(this.sortState);
+                this.setLoaded();
+              }
             }
           })
           .catch(error => {
@@ -277,7 +319,7 @@ export default {
     getUser(token, uh) {
       Authenticator.getUserByToken(token)
         .then(response => {
-          this.attemptUser(response.data.user);
+          this.attemptUserObject(response.data.user);
         })
         .catch(error => {
           this.$q.notify({
@@ -287,8 +329,8 @@ export default {
           });
         });
     },
-    createRoom(fh, title, timeLimit) {
-      if (fh == undefined || this.user.uh == undefined) {
+    createRoom(fh, title, timeLimit, thumbnailUrl) {
+      if (fh == undefined || this.userHash == undefined) {
         console.log("form hash or user hash is undefined");
         return;
       }
@@ -297,19 +339,42 @@ export default {
         console.log("Time limit or title is undefined");
         return;
       }
-      this.socket.open();
 
       this.$store.dispatch("waitingRoom/setTitle", { title: title });
       this.$store.dispatch("waitingRoom/setFormHash", { formHash: fh });
-
-      console.log("formHash: ", fh);
-
-      this.socket.emit("createRoomRequest", {
-        title: title,
-        userHash: this.user.uh,
-        formHash: fh,
-        duration: timeLimit
+      this.$store.dispatch("waitingRoom/setThumbnailUrl", {
+        thumbnailUrl: thumbnailUrl
       });
+
+      this.socketCommunicator.emit("createRoomRequest", {
+        title: title,
+        userHash: this.userHash,
+        formHash: fh,
+        duration: timeLimit,
+        thumbnailUrl: thumbnailUrl
+      });
+    },
+    viewRunningQuiz() {
+      if (this.activeQuiz == undefined) {
+        return;
+      }
+
+      this.$store.dispatch("waitingRoom/setTitle", {
+        title: this.activeQuiz.title
+      });
+      this.$store.dispatch("waitingRoom/setFormHash", {
+        formHash: this.activeQuiz.formHash
+      });
+      this.$store.dispatch("waitingRoom/setInvitationCode", {
+        invitationCode: this.activeQuiz.code
+      });
+
+      this.$router.push({ name: "waitingroom" });
+    },
+    beforeUnload() {
+      this.socketCommunicator.socket.removeAllListeners();
+      this.socketCommunicator.socket.close();
+      this.socketCommunicator = null;
     }
   }
 };

@@ -4,22 +4,45 @@
     @mouseover="hover = true"
     @mouseleave="hover = false"
   >
-    <div class="row icon-center bg-box" :class="bgTheme">
-      <transition name="fade">
-        <div v-if="hover || this.width < 600" class="q-gutter-sm cursor-pointer">
+    <div class="row icon-center bg-box" :class="`theme-${theme}`">
+      <q-img v-if="thumbnailUrl" :src="thumbnailUrl">
+        <transition name="fade">
+          <div v-if="hover || this.width < 600" class="absolute-full flex flex-center">
+            <div class="q-gutter-sm cursor-pointer">
+              <q-icon name="delete_outline" size="35px" @click="deleteConfirm">
+                <q-tooltip
+                  anchor="top middle"
+                  self="top middle"
+                  :offset="[10, 34]"
+                >Delete {{ title }}</q-tooltip>
+              </q-icon>
+              <q-icon name="visibility" size="35px" @click="goToQuizz">
+                <q-tooltip anchor="top middle" self="top middle" :offset="[10, 34]">View {{ title }}</q-tooltip>
+              </q-icon>
+              <q-icon name="create" size="35px" @click="goToEditQuizz">
+                <q-tooltip anchor="top middle" self="top middle" :offset="[10, 34]">Edit {{ title }}</q-tooltip>
+              </q-icon>
+            </div>
+          </div>
+        </transition>
+      </q-img>
+
+      <transition v-else name="fade">
+        <div v-if="hover || this.width < 600" class="q-gutter-sm cursor-pointer flex flex-center">
           <q-icon name="delete_outline" size="35px" @click="deleteConfirm">
-            <q-tooltip anchor="top middle" self="top middle" :offset="[10, 30]">Delete {{ title }}</q-tooltip>
+            <q-tooltip anchor="top middle" self="top middle" :offset="[10, 34]">Delete {{ title }}</q-tooltip>
           </q-icon>
           <q-icon name="visibility" size="35px" @click="goToQuizz">
-            <q-tooltip anchor="top middle" self="top middle" :offset="[10, 30]">View {{ title }}</q-tooltip>
+            <q-tooltip anchor="top middle" self="top middle" :offset="[10, 34]">View {{ title }}</q-tooltip>
           </q-icon>
           <q-icon name="create" size="35px" @click="goToEditQuizz">
-            <q-tooltip anchor="top middle" self="top middle" :offset="[10, 30]">Edit {{ title }}</q-tooltip>
+            <q-tooltip anchor="top middle" self="top middle" :offset="[10, 34]">Edit {{ title }}</q-tooltip>
           </q-icon>
         </div>
       </transition>
     </div>
     <div class="info cursor-pointer" @click="createQuizSession">
+      <q-tooltip anchor="bottom middle" self="bottom middle" :offset="[10, 28]">Start quiz</q-tooltip>
       <p class="center title q-pt-xs">{{ title | truncate(26, "...") }}</p>
       <p class="float-left q-pl-sm">{{ averagePass }}% Avg.</p>
       <p class="float-right q-pr-sm">{{ formatNumber(playTimes) }} Plays</p>
@@ -70,6 +93,9 @@ export default {
       type: Number,
       required: true,
       default: 1
+    },
+    thumbnailUrl: {
+      type: String
     }
   },
   computed: {
@@ -161,7 +187,13 @@ export default {
       });
     },
     createQuizSession() {
-      this.$emit("createRoom", this.fh, this.title, this.timeLimit);
+      this.$emit(
+        "createRoom",
+        this.fh,
+        this.title,
+        this.timeLimit,
+        this.thumbnailUrl
+      );
     }
   },
   created() {
@@ -170,8 +202,7 @@ export default {
   },
   beforeDestroy() {
     window.removeEventListener("resize", this.onResize);
-  },
-  mounted() {}
+  }
 };
 </script>
 
@@ -181,8 +212,17 @@ export default {
   max-height: 100px;
   width: 100%;
   height: 100%;
+  transition: box-shadow 0.3s;
+}
+.box:hover {
+  box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+.box:active {
+  transform: scale(1.05);
+  transition: transform 0.1s;
 }
 .bg-box {
+  overflow: hidden;
   width: 100%;
   height: 50px;
 }

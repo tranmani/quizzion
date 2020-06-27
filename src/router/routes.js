@@ -57,6 +57,14 @@ const routes = [{
     }
   },
   {
+    path: '/chat',
+    name: 'chat',
+    component: () => import('pages/ChatPage.vue'),
+    meta: {
+      requiresAuth: false
+    }
+  },
+  {
     path: '/index',
     name: 'index',
     component: () => import('pages/Index.vue')
@@ -64,7 +72,6 @@ const routes = [{
   {
     path: '/waitingroom',
     name: 'waitingroom',
-    props: true,
     component: () => import('pages/WaitingRoom.vue'),
     meta: {
       requiresAuth: true,

@@ -45,7 +45,10 @@
               <section class="row justify-center">
                 <q-btn
                   :disabled="disabledSignInBtn"
-                  @click="hashPassword();login();"
+                  @click="
+                    hashPassword();
+                    login();
+                  "
                   rounded
                   class="col-12 q-ma-md sign-btn"
                 >Sign in</q-btn>
@@ -59,7 +62,7 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { mapActions, mapGetters } from "vuex";
 import md5 from "md5";
 export default {
   data() {
@@ -77,7 +80,8 @@ export default {
 
   methods: {
     ...mapActions({
-      signIn: "authLogin/signIn"
+      signIn: "authLogin/signIn",
+      attemptAvatar: "authLogin/attemptAvatar"
     }),
 
     login() {
@@ -86,6 +90,11 @@ export default {
       this.signIn(this.credentials).then(() => {
         if (this.$store.state.authLogin.token != null) {
           this.$router.push({ path: "/dashboard" });
+
+          const random = Math.floor(Math.random() * 100);
+          this.attemptAvatar(`https://api.adorable.io/avatar/72/${random}`);
+        } else {
+          console.log("Sign in error: No token after sign in");
         }
       });
     },
@@ -137,7 +146,6 @@ export default {
   width: 100%;
   height: 100%;
 }
-
 
 .section-header {
   width: 100%;
@@ -200,7 +208,7 @@ a {
   }
 }
 
-@media only screen and (max-width: 600px){
+@media only screen and (max-width: 600px) {
   .section-container {
     position: absolute;
     background-color: #ffffff;
@@ -213,11 +221,11 @@ a {
     height: 100%;
   }
 
-  .panel-height{
+  .panel-height {
     height: 70vh;
   }
 
-  .section-body{
+  .section-body {
     height: 100%;
   }
 

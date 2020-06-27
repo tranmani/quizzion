@@ -5,7 +5,6 @@
       v-bind:label="title"
       v-bind:questions="questions"
       v-bind:theme="theme"
-      v-bind:socket="socket"
     />
   </q-page>
 </template>
@@ -18,7 +17,7 @@ import QuizFormRepository from "../remote/quiz/QuizFormRepository";
 
 export default {
   name: "CompleteQuiz",
-  props: ["title", "questions", "socket"],
+  props: ["title", "questions"],
   data() {
     return {
       questionHashes: null,

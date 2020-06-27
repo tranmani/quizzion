@@ -1,4 +1,4 @@
-<template>
+<template><!--t-->
   <q-page v-if="loaded" class="quiz-editor flex">
     <div class="question-listing" :class="`theme-${this.getQuiz.theme}`">
       <div class="question-listing-add">
@@ -66,7 +66,10 @@ export default {
         title: "",
         description: "",
         timeLimit: 60,
-        theme: 1
+        theme: 1,
+        playTimes: 0,
+        averagePass: 0,
+        thumbnail: ""
       },
       options: {
         multipleDropzonesItemsDraggingEnabled: false,
@@ -108,6 +111,9 @@ export default {
           var questions = templateContent.questions;
           this.quiz.theme = templateContent.properties.theme;
           this.quiz.timeLimit = templateContent.properties.timeLimit;
+          this.quiz.averagePass = templateContent.properties.averagePass;
+          this.quiz.playTimes = templateContent.properties.playTimes;
+          this.quiz.thumbnail = templateContent.properties.thumbnail;
           this.quiz.questions = questions;
 
           this.saveQuiz(this.quiz);
@@ -198,24 +204,26 @@ export default {
       this.editorTitle = "General";
     },
 
-    removeQuestion(name) {
+    removeQuestion(position) {
       var index;
       var index2;
       this.questions.forEach(question => {
-        if (question.name === name) {
+        if (question.position === position) {
           this.$store.state.question = null;
           index = this.questions.indexOf(question);
-          index2 = this.quiz.questions.indexOf(question.vh);
+          if(question.vh) {
+            index2 = this.quiz.questions.indexOf(question.vh);
+            this.quiz.questions.splice(index2, 1);
+            QuestionRepository.deleteQuestion(question.vh, this.token).then(
+              res => {
+                this.editQuiz();
+              }
+            );
+          }
 
           this.questions.splice(index, 1);
-          this.quiz.questions.splice(index2, 1);
           this.currentPosition = this.quiz.questions.length;
           this.editorTitle = "General";
-          QuestionRepository.deleteQuestion(question.vh, this.token).then(
-            res => {
-              this.editQuiz();
-            }
-          );
         }
       });
     },
@@ -254,8 +262,9 @@ export default {
           label: "label in content property",
           theme: this.getQuiz.theme,
           timeLimit: parseInt(this.getQuiz.timeLimit),
-          playTimes: 0,
-          averagePass: 0
+          playTimes: this.getQuiz.playTimes,
+          averagePass: this.getQuiz.averagePass,
+          thumbnail: this.getQuiz.thumbnail
         },
         questions: []
       };
@@ -328,7 +337,10 @@ export default {
         type: "quiz",
         properties: {
           theme: this.getQuiz.theme,
-          timeLimit: parseInt(this.getQuiz.timeLimit)
+          timeLimit: parseInt(this.getQuiz.timeLimit),
+          playTimes: this.getQuiz.playTimes,
+          averagePass: this.getQuiz.averagePass,
+          thumbnail: this.getQuiz.thumbnail
         },
         questions: this.quiz.questions
       };
@@ -364,7 +376,6 @@ export default {
                 type: "negative",
                 message: "Something went wrong while saving the quiz! " + err
               });
-              console.log(err);
             });
         })
         .catch(err => {

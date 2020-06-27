@@ -1,6 +1,10 @@
 <template>
   <q-page class="main-page flex flex-center">
-    <WaitingQuizCard class="title-card" v-bind:title="getTitle.title" />
+    <WaitingQuizCard
+      class="title-card"
+      v-bind:title="getTitle.title"
+      :thumbnail="getThumbnailUrl.thumbnailUrl"
+    />
 
     <q-dialog v-model="showNoParticipants">
       <q-card>
@@ -19,6 +23,20 @@
       </q-card>
     </q-dialog>
 
+    <q-dialog v-model="showNoQuestions">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">No Questions</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">Seems like there is no questions in this quiz...</q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="OK" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <q-drawer
       v-model="drawer"
       show-if-above
@@ -28,7 +46,6 @@
       :breakpoint="200"
       bordered
       :mini-to-overlay="mobile"
-      elevated
     >
       <template v-slot:mini>
         <div class="q-py-md">
@@ -53,22 +70,31 @@
           />
         </q-list>
       </q-scroll-area>
-      <div v-if="modPage">
+      <div v-if="this.modPage">
         <q-separator />
         <div class="absolute-bottom">
           <div class="button-holder row justify-center">
             <q-btn
+              v-if="startVisible"
               center
               class="button"
               style="color: white"
               label="Start quiz"
               v-on:click="startQuiz"
             />
+            <q-btn
+              center
+              color="red"
+              class="button"
+              style="color: white"
+              label="Stop"
+              v-on:click="stopQuiz"
+            />
           </div>
         </div>
       </div>
 
-      <div v-if="mobile" class="absolute" style="top: 15px; left: -17px">
+      <div v-if="mobile" class="q-mini-drawer-hide absolute" style="top: 15px; left: -17px">
         <q-btn
           dense
           round
@@ -78,6 +104,15 @@
           @click="miniState = true"
         />
       </div>
+
+      <chat-component
+        style="z-index: 3001;"
+        :messages="messages"
+        :sender="sender"
+        :scroll="scroll"
+        v-on:newChat="sendChat"
+        v-on:scrollDone="scroll = false"
+      ></chat-component>
     </q-drawer>
   </q-page>
 </template>
@@ -88,34 +123,182 @@ import UserCard from "../components/waitingroom/UserCard";
 import WaitingQuizCard from "../components/waitingroom/WaitingQuizCard";
 import InvitationView from "../components/waitingroom/InvitationView";
 import QuestionFetcher from "../remote/quiz/QuestionFetcher";
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
+import UserRepository from "../remote/user/UserRepository";
+import ChatComponent from "../components/Chat";
+import SocketCommunicator from "../remote/socket/socket_communicator";
+import FileRepository from "../remote/files/FileRepository";
 
 export default {
   components: {
     UserCard,
     WaitingQuizCard,
-    InvitationView
+    InvitationView,
+    ChatComponent
   },
   computed: {
     ...mapGetters("waitingRoom", [
       "getTitle",
       "getInvitationCode",
-      "getFormHash"
+      "getFormHash",
+      "getThumbnailUrl",
+      "getUserHash",
+      "getUsername",
+      "getAvatarUrl"
     ]),
-    ...mapGetters("authLogin", ["token"])
+    ...mapGetters("authLogin", ["token", "userHash", "userObject", "avatar"])
   },
-  props: ["socket"],//, "hash", "tkn", "usrname", "avatarUrl", "frmHash", "participants"],
   data() {
     return {
+      socketCommunicator: null,
       modPage: false,
+      startVisible: false,
+      runningVisible: false,
       participants: [],
       showNoParticipants: false,
+      showNoQuestions: false,
       questions: null,
       miniState: false,
       drawer: false,
       width: 0,
-      mobile: false
+      mobile: false,
+      sender: {
+        uh: "",
+        username: "",
+        associatedAvatar: "",
+        isModerator: false,
+        isUs: true
+      },
+      scroll: false,
+      messages: []
     };
+  },
+  created() {
+    this.socketCommunicator = new SocketCommunicator(this.userHash);
+
+    this.modPage = this.getInvitationCode.invitationCode != undefined;
+    this.startVisible = this.modPage;
+
+    window.addEventListener("resize", this.onResize);
+    window.addEventListener("beforeunload", this.beforeUnload);
+
+    if (window.innerWidth <= 600) {
+      this.miniState = true;
+      this.mobile = true;
+    } else {
+      this.miniState = false;
+      this.mobile = false;
+    }
+    this.width = window.innerWidth;
+
+    if (this.socketCommunicator == undefined) return;
+
+    this.socketCommunicator.on("user_data_response", response => {
+      let users = response.users;
+      this.participants = users;
+      console.log(users);
+    });
+  },
+  async mounted() {
+    this.modPage = this.getInvitationCode.invitationCode != undefined;
+
+    this.sender.isModerator = this.modPage;
+
+    if (this.modPage) {
+      this.questions = await QuestionFetcher.loadQuestions(
+        this.getFormHash.formHash,
+        this.token
+      );
+      this.sender.username = this.userObject.username;
+      this.sender.uh = this.userHash;
+      this.sender.associatedAvatar = this.avatar;
+
+      console.log("Questions in waitingRoom: ", this.questions);
+    } else {
+      this.sender.username = this.getUsername;
+      this.sender.uh = this.getUserHash;
+      this.sender.associatedAvatar = this.getAvatarUrl;
+    }
+    this.socketCommunicator.emit("chat_history_request");
+
+    this.socketCommunicator.on("quiz_status", response => {
+      if (!this.modPage) {
+        return;
+      }
+
+      if (response.running) {
+        this.startVisible = false;
+        this.runningVisible = true;
+      } else {
+        this.startVisible = true;
+        this.runningVisible = false;
+      }
+    });
+
+    this.socketCommunicator.on("quiz_start_response", response => {
+      if (response.questions == undefined) {
+        console.log("No Questions");
+        return;
+      }
+
+      if (this.modPage) {
+        console.log("Mod page so nothing happens");
+        this.socketCommunicator.emit("check_status", {});
+      } else {
+        this.navigateToCompleteQuiz(response.questions);
+      }
+    });
+
+    this.socketCommunicator.on("user_data_response", response => {
+      let users = response.users;
+      this.participants = users;
+    });
+
+    this.socketCommunicator.on("quiz_stopped", response => {
+      if (this.token == undefined) {
+        this.$router.push({
+          name: "join"
+        });
+      } else {
+        this.$router.push({
+          name: "dashboard"
+        });
+      }
+    });
+
+    this.socketCommunicator.on("update_chat_response", response => {
+      if (
+        this.getUserHash == response.sender.uh ||
+        this.userHash == response.sender.uh
+      ) {
+        this.scroll = true;
+        return;
+      }
+      this.messages.push({
+        sender: response.sender,
+        text: response.text
+      });
+      this.scroll = true;
+    });
+
+    this.socketCommunicator.on("chat_history_response", response => {
+      response.forEach(value => {
+        if (value.sender.uh == this.userHash) value.sender.isUs = true;
+        else value.sender.isUs = false;
+      });
+
+      this.messages = [...response];
+      this.scroll = true;
+    });
+
+    this.socketCommunicator.emit("check_status", {});
+  },
+  beforeDestroy() {
+    window.removeEventListener("resize", this.onResize);
+    window.removeEventListener("beforeunload", this.beforeUnload);
+    this.socketCommunicator.socket.removeAllListeners();
+    this.socketCommunicator.socket.close();
+    this.socketCommunicator = null;
   },
   methods: {
     async startQuiz() {
@@ -124,17 +307,24 @@ export default {
         return;
       }
 
-      if (this.questions.length == 0) {
-        console.log("Can't start quiz no questions loaded");
+      if (this.questions == undefined || this.questions.length == 0) {
+        this.showNoQuestions = true;
         return;
       }
 
-      this.socket.emit("start_quiz_request", { questions: this.questions });
+      this.socketCommunicator.emit("start_quiz_request", {
+        questions: this.questions
+      });
+    },
+    stopQuiz() {
+      this.socketCommunicator.emit("stop_quiz_request", {
+        userHash: this.userHash
+      });
     },
     navigateToCompleteQuiz(questionsResponse) {
       console.log("last pass", this.$route.params);
       // add a 0 score to everyone
-      this.participants.forEach(function (element) {
+      this.participants.forEach(function(element) {
         element.score = 0;
       });
       this.$router.push({
@@ -142,12 +332,10 @@ export default {
         params: {
           title: this.getTitle.title,
           questions: questionsResponse,
-          userHash: this.$route.params.hash,
           userToken: this.$route.params.tkn,
           userName: this.$route.params.usrname,
           userAvatarUrl: this.$route.params.avatarUrl,
           formHash: this.$route.params.frmHash,
-          socket: this.socket,
           participants: this.participants
         }
       });
@@ -167,56 +355,22 @@ export default {
         this.mobile = false;
       }
       this.width = window.innerWidth;
+    },
+    beforeUnload() {
+      this.socketCommunicator.socket.removeAllListeners();
+      this.socketCommunicator.socket.close();
+      this.socketCommunicator = null;
+    },
+    sendChat(request) {
+      this.socketCommunicator.emit("update_chat_request", {
+        sender: request.sender,
+        text: request.text
+      });
+      this.messages.push({
+        sender: request.sender,
+        text: request.text
+      });
     }
-  },
-  async mounted() {
-    this.modPage = this.getInvitationCode.invitationCode != undefined;
-
-    if (this.modPage) {
-      this.questions = await QuestionFetcher.loadQuestions(
-        this.getFormHash.formHash,
-        this.token
-      );
-
-      console.log("Questions in waitingRoom: ", this.questions);
-    }
-
-    this.socket.on("quiz_start_response", response => {
-      console.log("QUIZ START RESPONSE: ", response);
-
-      if (response.questions == undefined) {
-        console.log("No Questions");
-        return;
-      }
-
-      if (this.modPage) {
-        console.log("Mod page so nothing happens");
-      } else {
-        this.navigateToCompleteQuiz(response.questions);
-      }
-    });
-  },
-  created() {
-    if (this.socket == undefined) return;
-
-    this.socket.on("user_data_response", response => {
-      let users = response.users;
-      this.participants = users;
-      console.log(users);
-    });
-
-    window.addEventListener("resize", this.onResize);
-    if (window.innerWidth <= 600) {
-      this.miniState = true;
-      this.mobile = true;
-    } else {
-      this.miniState = false;
-      this.mobile = false;
-    }
-    this.width = window.innerWidth;
-  },
-  beforeDestroy() {
-    window.removeEventListener("resize", this.onResize);
   }
 };
 </script>
@@ -225,7 +379,8 @@ export default {
   background-image: linear-gradient(90deg, #fee140 0%, #fa709a 100%);
 }
 .user-list {
-  height: calc(98% - 150px);
+  // was - 150px before changed since the bar was constantly showing and it was not the one we needed
+  height: calc(98% - 205px);
   border-right: 1px solid #ddd;
 }
 .title {
@@ -246,6 +401,7 @@ export default {
   justify-content: center;
   width: 100%;
   height: 100%;
+  margin-bottom: 48px;
 }
 .button {
   width: 100%;
@@ -253,7 +409,7 @@ export default {
   margin-left: 24px;
   margin-right: 24px;
   border-radius: 20px;
-  margin-bottom: 24px;
+  margin-bottom: 10px;
 }
 
 .title-card {

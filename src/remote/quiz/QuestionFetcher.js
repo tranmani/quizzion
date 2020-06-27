@@ -25,8 +25,6 @@ export default {
             return;
         }
 
-        console.log("FORM RESPONSE: ", formResponse);
-
         const templateResponse = await QuizTemplateRepository.getTemplateContent(
             formResponse.data.form[0].tn,
             token
@@ -36,8 +34,6 @@ export default {
             console.log("GET TEMPLATE ERROR: ", templateResponse.status);
             return;
         }
-
-        console.log("TEMPLATE RESPONSE: ", templateResponse);
 
         const data = templateResponse.data;
         let content = data.content.content;
@@ -49,8 +45,6 @@ export default {
             console.log("No question hashes found");
             return;
         }
-
-        console.log("Question hashes: ", questionHashes);
 
         var questions = [];
 
@@ -82,8 +76,6 @@ export default {
             }
 
             let groupHash = answerGroupResponse.data.varoptiongroup[0].vogh;
-
-            console.log("GRoupHAsH: ", groupHash);
             let answersResponse = await AnswerRepository.getAnswerGroupAnswers(groupHash, token);
 
             if (answersResponse.status != 200) {

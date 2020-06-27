@@ -1,27 +1,47 @@
 <template>
   <div class="container">
-    <span class="headerTitle">{{title}}</span>
+    <span class="headerTitle">{{ title }}</span>
     <div class="progress">
-      <q-linear-progress rounded size="10px" color="positive" :value="progression" />
+      <q-linear-progress
+        rounded
+        size="10px"
+        color="positive"
+        :value="progression"
+      />
     </div>
-    <span v-if="timer" class="timeLeft">{{minuteAndSecond}}</span>
+    <span v-if="timer" class="timeLeft">{{ minuteAndSecond }}</span>
   </div>
 </template>
 
 <script>
-import io from "socket.io-client";
+import { mapGetters } from "vuex";
+import SocketCommunicator from "../remote/socket/socket_communicator";
 
 export default {
-  props: ["title", "duration", "progression", "timer", "socket"],
+  props: ["title", "duration", "progression", "timer"],
   name: "QuizHeader",
+  computed: {
+    minuteAndSecond() {
+      let minutes = Math.floor(this.seconds / 60);
+      let seconds = this.seconds - minutes * 60;
+      if (seconds < 10) seconds = `0${seconds}`;
+      return `${minutes}:${seconds}`;
+    },
+    ...mapGetters("authLogin", ["userHash"])
+  },
   data() {
     return {
-      progress: 0,
+      SocketCommunicator: null,
       seconds: 0
     };
   },
   created() {
-    this.socket.on("quiz_timer_response", response => {
+    this.socketCommunicator = new SocketCommunicator(this.userHash);
+
+    window.addEventListener("beforeunload", this.beforeUnload);
+  },
+  mounted() {
+    this.socketCommunicator.on("quiz_timer_response", response => {
       if (response.running) {
         this.seconds = response.tick;
       } else {
@@ -29,21 +49,17 @@ export default {
       }
     });
   },
-  computed: {
-    minuteAndSecond() {
-      let minutes = Math.floor(this.seconds / 60);
-      let seconds = this.seconds - minutes * 60;
-      if (seconds < 10) seconds = `0${seconds}`;
-      return `${minutes}:${seconds}`;
-    }
+  beforeDestroy() {
+    window.removeEventListener("beforeunload", this.beforeUnload);
+    this.socketCommunicator.socket.removeAllListeners();
+    this.socketCommunicator.socket.close();
+    this.socketCommunicator = null;
   },
   methods: {
-    setProgress: function(event) {
-      if (this.progress >= 1) {
-        return;
-      }
-      console.log(this.progress);
-      this.progress += 0.1;
+    beforeUnload() {
+      this.socketCommunicator.socket.removeAllListeners();
+      this.socketCommunicator.socket.close();
+      this.socketCommunicator = null;
     }
   }
 };

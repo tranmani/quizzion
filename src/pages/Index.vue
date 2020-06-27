@@ -1,25 +1,45 @@
 <template>
-<div>
-  <div class="gt-sm">
-    <q-page class="flex flex-center">
-      {{requestCode}}
-      <q-btn @click="createSession()" rounded class="col-12 q-ma-md sign-btn">Create Session</q-btn>
-      <q-input outlined dense v-model="code" bg-color="grey-4" placeholder="Code" />
-      <q-btn @click="joinRoom()" rounded class="col-12 q-ma-md sign-btn">Connect</q-btn>
-    </q-page>
-  </div>
+  <div>
+    <div class="gt-sm">
+      <q-page class="flex flex-center">
+        {{ requestCode }}
+        <q-btn @click="createSession()" rounded class="col-12 q-ma-md sign-btn"
+          >Create Session</q-btn
+        >
+        <q-input
+          outlined
+          dense
+          v-model="code"
+          bg-color="grey-4"
+          placeholder="Code"
+        />
+        <q-btn @click="joinRoom()" rounded class="col-12 q-ma-md sign-btn"
+          >Connect</q-btn
+        >
+      </q-page>
+    </div>
 
-  <div class="lt-sm">
-    <q-page class="flex flex-center">
-      <section class="column items-center">
-      {{requestCode}}
-      <q-btn @click="createSession()" rounded class="q-ma-md sign-btn">Create Session</q-btn>
-      <q-input outlined dense v-model="code" bg-color="grey-4" placeholder="Code" />
-      <q-btn @click="joinRoom()" rounded class="q-ma-md sign-btn">Connect</q-btn>
-      </section>
-    </q-page>
+    <div class="lt-sm">
+      <q-page class="flex flex-center">
+        <section class="column items-center">
+          {{ requestCode }}
+          <q-btn @click="createSession()" rounded class="q-ma-md sign-btn"
+            >Create Session</q-btn
+          >
+          <q-input
+            outlined
+            dense
+            v-model="code"
+            bg-color="grey-4"
+            placeholder="Code"
+          />
+          <q-btn @click="joinRoom()" rounded class="q-ma-md sign-btn"
+            >Connect</q-btn
+          >
+        </section>
+      </q-page>
+    </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -51,7 +71,7 @@ export default {
     }
   },
   created() {
-    this.socket = io("http://localhost:3000");
+    this.socket = io("http://localhost:3000/");
 
     this.socket.on("create_room_response", message => {
       this.requestCode = message.code;
@@ -89,6 +109,4 @@ export default {
 };
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

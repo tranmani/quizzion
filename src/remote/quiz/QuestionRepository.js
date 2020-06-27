@@ -12,8 +12,6 @@ export default {
         })
     },
     getQuestion(varHash, xcsrfToken) {
-        console.log(`${endpoint}/${varHash}`);
-        console.log(varHash + " " + xcsrfToken);
         return AxiosClient({
             method: 'get',
             url: `${endpoint}/${varHash}`,
@@ -28,7 +26,6 @@ export default {
         })
     },
     updateQuestion(question, xcsrfToken) {
-        console.log("got question: ", question);
         return AxiosClient({
             method: 'put',
             url: `${endpoint}/${question.vh}`,

@@ -20,7 +20,6 @@ export default {
         })
     },
     putQuestionInQuizTemplate(contentType, templateNumber, templateQuestions, xcsrfToken) {
-        console.log("vogsh: ", templateQuestions);
         return AxiosClient({
             method: 'put',
             url: `${endpoint}/${templateNumber}/content`,
@@ -65,9 +64,6 @@ export default {
         })
     },
     updateTemplateContent(templateNumber, contenttype, content, xcsrfToken) {
-        console.log("content n: ", templateNumber);
-        console.log("contenttype: ", contenttype);
-        console.log("content: ", JSON.stringify(content));
         return AxiosClient({
             method: 'put',
             url: `${endpoint}/${templateNumber}/content`,

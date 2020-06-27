@@ -8,7 +8,7 @@
           <q-icon name="person_outline" size="150px" class="col-xs-12 col-sm-4" />
           <div class="column justify-center col-xs-12 col-sm-8">
             <div class="row">
-              <h5>{{ user.username }}</h5>
+              <h5>{{ userObject.username }}</h5>
 
               <q-icon
                 name="create"
@@ -18,8 +18,8 @@
               />
             </div>
 
-            <p>{{ user.firstname + ' ' + user.lastname }}</p>
-            <p>{{ user.email }}</p>
+            <p>{{ userObject.firstname + ' ' + userObject.lastname }}</p>
+            <p>{{ userObject.email }}</p>
           </div>
         </div>
 
@@ -107,11 +107,11 @@ export default {
     ProfileSkeleton
   },
   computed: {
-    ...mapGetters("authLogin", ["user", "token"])
+    ...mapGetters("authLogin", ["userHash", "token", "userObject"])
   },
   mounted() {
     if (this.token !== null) {
-      if (Object.keys(this.user).length === 0) {
+      if (Object.keys(this.userObject).length === 0) {
         this.getUser(this.token);
       } else {
         this.copyProfile();
@@ -161,16 +161,20 @@ export default {
     }
   },
   methods: {
-    ...mapActions("authLogin", ["attemptUser"]),
+    ...mapActions("authLogin", ["attemptUserObject"]),
     onSubmit() {
       if (!this.disableBtn) {
         this.submitting = true;
         // api call to edit profile here, remember to set this.isEditing and this.submitting to false
-        UserRepository.updateUser(this.user.uh, this.editProfile, this.token)
+        UserRepository.updateUser(
+          this.userObject.uh,
+          this.editProfile,
+          this.token
+        )
           .then(response => {
             this.isEditing = false;
             this.submitting = false;
-            this.attemptUser(this.editProfile);
+            this.attemptUserObject(this.editProfile);
             this.$q.notify({
               icon: "done",
               color: "positive",
@@ -201,7 +205,7 @@ export default {
     getUser(token) {
       Authenticator.getUserByToken(this.token)
         .then(response => {
-          this.attemptUser(response.data.user);
+          this.attemptUserObject(response.data.user);
           this.copyProfile();
           this.loaded = true;
         })
@@ -214,7 +218,7 @@ export default {
         });
     },
     copyProfile() {
-      Object.assign(this.editProfile, this.user);
+      Object.assign(this.editProfile, this.userObject);
     }
   }
 };

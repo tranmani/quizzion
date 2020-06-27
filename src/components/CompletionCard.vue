@@ -1,15 +1,16 @@
 <template>
   <q-card
     class="completion-card"
-    v-bind:class="[!this.chartDisplayed ? 'theme-'+this.theme : 'bg-plain']"
+    v-bind:class="[!this.chartDisplayed ? 'theme-' + this.theme : 'bg-plain']"
   >
     <q-card-section class="card-header bg-white">
       <div class="card-toolbar">
         <QuizHeader
           :title="label"
           :timer="true"
-          :progression="parseFloat(this.position+1) / parseFloat(this.questions.length)"
-          v-bind:socket="socket"
+          :progression="
+            parseFloat(this.position + 1) / parseFloat(this.questions.length)
+          "
           v-on:timerFinish="timesUp"
         />
       </div>
@@ -37,14 +38,14 @@
       ></doughnut-chart>
       <mini-leaderboard-component
         v-if="this.chartDisplayed && !this.leaderboardDisplayed"
-        :userHash="uh"
+        :userHash="this.userHash"
         :userData="usrData"
         :colorData="clrData"
       ></mini-leaderboard-component>
 
       <leaderboard-component
         v-if="this.chartDisplayed && this.leaderboardDisplayed"
-        :userHash="uh"
+        :userHash="this.userHash"
         :userData="usrData"
         :colorData="clrData"
       ></leaderboard-component>
@@ -55,19 +56,26 @@
         v-show="!loading"
         v-if="lastQuestion && this.chartDisplayed"
         v-on:click="finish"
-      >Finish</q-btn>
+        >Finish</q-btn
+      >
       <q-btn
         class="button"
         v-show="!loading"
-        v-if="(!lastQuestion || !this.chartDisplayed) && this.selectedAnsr != ''"
+        v-if="
+          (!lastQuestion || !this.chartDisplayed) && this.selectedAnsr != ''
+        "
         v-on:click="next"
-      >Next</q-btn>
+        >Next</q-btn
+      >
       <q-btn
         class="button"
         v-show="!loading"
         disabled
-        v-if="(!lastQuestion || !this.chartDisplayed) && this.selectedAnsr == ''"
-      >Next</q-btn>
+        v-if="
+          (!lastQuestion || !this.chartDisplayed) && this.selectedAnsr == ''
+        "
+        >Next</q-btn
+      >
     </q-card-actions>
     <q-inner-loading :showing="loading">
       <q-spinner size="50px" color="secondary" />
@@ -76,6 +84,7 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 import QuizHeader from "../components/QuizHeader";
 import DoughnutChart from "../components/charts/DoughnutChart";
 import LeaderboardComponent from "../components/charts/LeaderboardComponent";
@@ -87,7 +96,7 @@ import QuizFormRepository from "../remote/quiz/QuizFormRepository";
 
 export default {
   name: "CompletionCard",
-  props: ["label", "questions", "theme", "socket"], //, "userHash", "userToken", "userName", "userAvatarUrl", "formHash", "participants"],
+  props: ["label", "questions", "theme"],
   methods: {},
   components: {
     QuizHeader,
@@ -102,10 +111,6 @@ export default {
         typeof this.$route.params.userToken == "undefined"
           ? ""
           : this.$route.params.userToken,
-      uh:
-        typeof this.$route.params.userHash == "undefined"
-          ? ""
-          : this.$route.params.userHash,
       formHash:
         typeof this.$route.params.formHash == "undefined"
           ? ""
@@ -201,7 +206,12 @@ export default {
       ansrLetters: ["A", "B", "C", "D"]
     };
   },
+  computed: {
+    ...mapGetters("authLogin", ["userHash"])
+  },
   mounted() {
+    console.log("TOKEN: ", this.token);
+    console.log("USER HASH ", this.userHash);
     this.loadQuestion();
     // TODO should be called after every submittion (an optimized version when it gets inserted prob - insertion sort?)
     this.sortUserDataBasedOnScore();
@@ -341,7 +351,7 @@ export default {
     },
     modifyUserScore: function() {
       for (let userIndex = 0; userIndex < this.usrData.length; userIndex++) {
-        if (this.uh == this.usrData[userIndex].userHash) {
+        if (this.userHash == this.usrData[userIndex].userHash) {
           console.log(
             this.usrData[userIndex].username,
             " received ",

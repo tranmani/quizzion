@@ -79,16 +79,20 @@ export default {
       userToken: "",
       userName: "",
       userAvatarUrl: "",
-      frmHash: ""
+      frmHash: "",
+      thumbnailUrl: ""
     };
   },
   computed: {
     ...mapGetters("authLogin", ["token"])
   },
   mounted() {
-    this.socket = io("https://3.212.180.89", {
+    this.socket = io("https://socket-example-huy.herokuapp.com", {
       autoConnect: false,
-      transport: ['websocket']
+      query: {
+        token: 0
+      },
+      transport: ["websocket"]
     });
     this.socket.on("join_room_response", response => {
       if (!response.user) {
@@ -110,6 +114,7 @@ export default {
         this.userToken = response.user.accessToken;
         this.userAvatarUrl = response.user.avatarUrl;
         this.frmHash = response.quiz.formHash;
+        this.thumbnailUrl = response.quiz.thumbnail;
         console.log("User Hash: " + this.userHash);
         console.log("User Token: " + this.userToken);
         console.log("User Name: " + this.userName);
@@ -132,12 +137,23 @@ export default {
           this.$store.dispatch("waitingRoom/setInvitationCode", {
             invitationCode: null
           });
+          this.$store.dispatch("waitingRoom/setThumbnailUrl", {
+            thumbnailUrl: this.thumbnailUrl
+          });
+          this.$store.dispatch("waitingRoom/setUserHash", {
+            userHash: this.userHash
+          });
+          this.$store.dispatch("waitingRoom/setUsername", {
+            username: this.userName
+          });
+          this.$store.dispatch("waitingRoom/setAvatarUrl", {
+            avatarUrl: this.userAvatarUrl
+          });
 
+          this.$store.dispatch("authLogin/attemptUser", this.userHash);
           this.$router.push({
             name: "guestwaitingroom",
             params: {
-              socket: this.socket,
-              hash: this.userHash,
               tkn: this.userToken,
               usrname: this.userName,
               avatarUrl: this.userAvatarUrl,
@@ -154,20 +170,24 @@ export default {
           this.$store.dispatch("waitingRoom/setInvitationCode", {
             invitationCode: this.inviteCode
           });
+          this.$store.dispatch("waitingRoom/setThumbnailUrl", {
+            thumbnailUrl: this.thumbnailUrl
+          });
+          this.$store.dispatch("waitingRoom/setAvatarUrl", {
+            avatarUrl: this.userAvatarUrl
+          });
 
           this.$router.push({
-            name: "waitingroom",
-            params: {
-              socket: this.socket
-            }
+            name: "waitingroom"
           });
         }
       }
     });
   },
   methods: {
-    ...mapActions("authLogin", ["attemptUser", "attemptToken"]),
+    ...mapActions("authLogin", ["attemptUserObject", "attemptToken"]),
     goToQuizz() {
+      console.log("dsb ", this.disabledBtn);
       if (!this.disabledBtn) {
         this.socket.open();
         this.socket.emit("joinRoomRequest", { code: this.inviteCode });
@@ -204,7 +224,7 @@ export default {
     getUser(token, uh) {
       Authenticator.getUserByToken(token)
         .then(response => {
-          this.attemptUser(response.data.user);
+          this.attemptUserObject(response.data.user);
           this.socket.emit("add_username_request", {
             userHash: uh,
             username: response.data.user.username
@@ -227,6 +247,9 @@ export default {
         this.disabledBtn = false;
       }
     }
+  },
+  beforeDestroy() {
+    this.socket.disconnect();
   }
 };
 </script>
