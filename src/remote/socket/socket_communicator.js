@@ -1,7 +1,7 @@
 import io from "socket.io-client";
 
 // Before deploying change localhost url to https://3.212.180.89:3000/
-const baseUrl = "https://socket-example-huy.herokuapp.com";
+const baseUrl = "https://3.212.180.89:3000/";
 var self;
 
 class SocketCommunicator {

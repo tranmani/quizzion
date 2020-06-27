@@ -44,12 +44,26 @@
         <q-icon name="code" />
       </template>
       <template v-slot:append>
-        <q-btn :disable="disabledBtn" icon="arrow_right_alt" dense flat rounded @click="goToQuizz" />
+        <q-btn
+          :disable="disabledBtn"
+          :loading="loading"
+          icon="arrow_right_alt"
+          dense
+          flat
+          rounded
+          @click="goToQuizz"
+        />
       </template>
     </q-input>
 
     <div v-if="joinBtn" class="row justify-center">
-      <q-btn :disable="disabledBtn" rounded @click="goToQuizz" class="col-12 q-ma-md join-btn">Join</q-btn>
+      <q-btn
+        :disable="disabledBtn"
+        :loading="loading"
+        rounded
+        @click="goToQuizz"
+        class="col-12 q-ma-md join-btn"
+      >Join</q-btn>
     </div>
   </div>
 </template>
@@ -80,14 +94,15 @@ export default {
       userName: "",
       userAvatarUrl: "",
       frmHash: "",
-      thumbnailUrl: ""
+      thumbnailUrl: "",
+      loading: false
     };
   },
   computed: {
     ...mapGetters("authLogin", ["token"])
   },
   mounted() {
-    this.socket = io("https://socket-example-huy.herokuapp.com", {
+    this.socket = io("https://3.212.180.89:3000/", {
       autoConnect: false,
       query: {
         token: 0
@@ -189,16 +204,24 @@ export default {
     goToQuizz() {
       console.log("dsb ", this.disabledBtn);
       if (!this.disabledBtn) {
+        this.loading = true;
         this.socket.open();
         this.socket.emit("joinRoomRequest", { code: this.inviteCode });
       }
     },
     errorDialog(error) {
-      this.$q.dialog({
-        title: "Error",
-        message: error,
-        cancel: false
-      });
+      this.$q
+        .dialog({
+          title: "Error",
+          message: error,
+          cancel: false
+        })
+        .onOk(() => {
+          this.loading = false;
+        })
+        .onCancel(() => {
+          this.loading = false;
+        });
     },
     enterName(uh) {
       this.$q

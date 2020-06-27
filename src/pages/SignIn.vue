@@ -15,6 +15,9 @@
                   outlined
                   dense
                   v-model="credentials.username"
+                  @keyup.enter="
+                    hashPassword();
+                    login();"
                   bg-color="grey-4"
                   placeholder="Username..."
                 />
@@ -24,6 +27,9 @@
                   outlined
                   dense
                   v-model="password"
+                  @keyup.enter="
+                    hashPassword();
+                    login();"
                   bg-color="grey-4"
                   placeholder="Password..."
                   :type="isPwd ? 'password' : 'text'"

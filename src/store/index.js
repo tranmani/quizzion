@@ -40,7 +40,7 @@ export default function ( /* { ssrContext } */) {
     plugins: [waitingRoomState],
     // enable strict mode (adds overhead!)
     // for dev mode only
-    strict: false//process.env.DEV
+    strict: process.env.DEV
   })
 
   return Store

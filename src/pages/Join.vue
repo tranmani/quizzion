@@ -44,6 +44,7 @@ export default {
   width: 100%;
   height: 230px;
   border-radius: $guest-page-border-radius;
+  box-shadow: 0 8px 20px rgba(37, 56, 88, 0.25);
   overflow: hidden;
 }
 

@@ -1,11 +1,16 @@
-<template><!--t-->
+<template>
+  <!--t-->
   <q-page v-if="loaded" class="quiz-editor flex">
     <div class="question-listing" :class="`theme-${this.getQuiz.theme}`">
       <div class="question-listing-add">
-        <q-btn color="white" text-color="black" style="float:left" @click="back">
+        <q-btn class="q-mb-lg" color="white" text-color="black" style="float:left" @click="back">
           <i class="fa fa-arrow-left" />
         </q-btn>
-        <q-btn style="background: green; color: white; float:right" @click="addQuestion">
+        <q-btn
+          class="q-mb-lg"
+          style="background: green; color: white; float:right"
+          @click="addQuestion"
+        >
           <i class="fa fa-plus" />
         </q-btn>
 
@@ -211,7 +216,7 @@ export default {
         if (question.position === position) {
           this.$store.state.question = null;
           index = this.questions.indexOf(question);
-          if(question.vh) {
+          if (question.vh) {
             index2 = this.quiz.questions.indexOf(question.vh);
             this.quiz.questions.splice(index2, 1);
             QuestionRepository.deleteQuestion(question.vh, this.token).then(
@@ -291,36 +296,36 @@ export default {
           ).then(res2 => {
             this.questions.forEach(question => {
               var questionAdd = {
-              label: question.label,
-              vartype: "item",
-              datatype: "varoption",
-              isNew: true
-            };
-            var position = this.count++;
-            var q = "question" + position;
-            // Add an answer group for a question.
-            AnswerRepository.postAnswerGroup(question.label, 1, this.token)
-              .then(res3 => {
-                question.vogh = res3.data.vogh;
+                label: question.label,
+                vartype: "item",
+                datatype: "varoption",
+                isNew: true
+              };
+              var position = this.count++;
+              var q = "question" + position;
+              // Add an answer group for a question.
+              AnswerRepository.postAnswerGroup(question.label, 1, this.token)
+                .then(res3 => {
+                  question.vogh = res3.data.vogh;
 
-                // Add answers to a question.
-                question.answers.forEach(answer => {
-                  this.saveAnswer(answer, res3.data.vogh, this.token, false);
-                  position++;
+                  // Add answers to a question.
+                  question.answers.forEach(answer => {
+                    this.saveAnswer(answer, res3.data.vogh, this.token, false);
+                    position++;
+                  });
+
+                  questionAdd.vogh = res3.data.vogh;
+
+                  this.saveQuestion(questionAdd, res.data.tn, quizContent);
+                  // reload dashboard
+                  this.setLoaded("false");
+                })
+                .catch(err => {
+                  this.$q.notify({
+                    type: "negative",
+                    message: `Failed to postAnswerGroup ${err}`
+                  });
                 });
-
-                questionAdd.vogh = res3.data.vogh;
-
-                this.saveQuestion(questionAdd, res.data.tn, quizContent);
-                // reload dashboard
-                this.setLoaded("false");
-              })
-              .catch(err => {
-                this.$q.notify({
-                  type: "negative",
-                  message: `Failed to postAnswerGroup ${err}`
-                });
-              });
             });
           });
         })

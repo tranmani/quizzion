@@ -71,7 +71,7 @@ export default {
     }
   },
   created() {
-    this.socket = io("http://localhost:3000/");
+    this.socket = io("https://3.212.180.89:3000/");
 
     this.socket.on("create_room_response", message => {
       this.requestCode = message.code;

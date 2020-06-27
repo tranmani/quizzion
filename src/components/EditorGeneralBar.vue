@@ -27,8 +27,8 @@
         v-on:blur="saveState"
         :rules="[ val => val > 5 || 'Time limit should be higher than 5']"
       />
-      
-      <img id="thumbnail"/>
+
+      <img id="thumbnail" />
       <q-file filled bottom-slots v-model="thumbnail" label="Thumbnail">
         <template v-slot:before>
           <q-icon name="folder_open" />
@@ -72,21 +72,24 @@ export default {
   },
   computed: {
     ...mapGetters("SingleQuizModule", ["getQuiz"]),
-    ...mapGetters("authLogin", ["token", "user"]),
+    ...mapGetters("authLogin", ["token", "userHash"])
   },
   created() {
     Object.assign(this.quiz, this.getQuiz);
-    if(this.quiz.thumbnail !== "") {
+    if (this.quiz.thumbnail !== "") {
       // get the file!
-      FileRepository.getFile(this.quiz.thumbnail, this.user.uh, this.token).then(res => {
+      FileRepository.getFile(
+        this.quiz.thumbnail,
+        this.userHash,
+        this.token
+      ).then(res => {
         const file = res.data.file[0];
-        document.getElementById("thumbnail").src = "data:image/" + file.extension + ";base64," + file.content;  
+        document.getElementById("thumbnail").src =
+          "data:image/" + file.extension + ";base64," + file.content;
       });
     }
   },
-  mounted() {
-
-  },
+  mounted() {},
   methods: {
     ...mapActions("SingleQuizModule", ["saveQuiz"]),
     submit() {
@@ -98,7 +101,10 @@ export default {
       this.saveQuiz({ theme: theme });
     },
     async saveThumbnail() {
-      var response = await FileRepository.createFileInFolder(this.thumbnail, this.token);
+      var response = await FileRepository.createFileInFolder(
+        this.thumbnail,
+        this.token
+      );
       this.quiz.thumbnail = response.data.fih;
       this.saveQuiz(this.quiz);
     },
