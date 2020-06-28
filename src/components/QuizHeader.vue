@@ -2,12 +2,7 @@
   <div class="container">
     <span class="headerTitle">{{ title }}</span>
     <div class="progress">
-      <q-linear-progress
-        rounded
-        size="10px"
-        color="positive"
-        :value="progression"
-      />
+      <q-linear-progress rounded size="10px" color="positive" :value="progression" />
     </div>
     <span v-if="timer" class="timeLeft">{{ minuteAndSecond }}</span>
   </div>
@@ -18,12 +13,16 @@ import { mapGetters } from "vuex";
 import SocketCommunicator from "../remote/socket/socket_communicator";
 
 export default {
-  props: ["title", "duration", "progression", "timer"],
+  props: ["title", "duration", "progression", "timer", "quizDone"],
   name: "QuizHeader",
   computed: {
     minuteAndSecond() {
-      let minutes = Math.floor(this.seconds / 60);
-      let seconds = this.seconds - minutes * 60;
+      let minutes = 0;
+      let seconds = 0;
+      if (!this.quizDone) {
+        minutes = Math.floor(this.seconds / 60);
+        seconds = this.seconds - minutes * 60;
+      }
       if (seconds < 10) seconds = `0${seconds}`;
       return `${minutes}:${seconds}`;
     },

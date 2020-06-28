@@ -44,7 +44,7 @@
     <div class="info cursor-pointer" @click="createQuizSession">
       <q-tooltip anchor="bottom middle" self="bottom middle" :offset="[10, 28]">Start quiz</q-tooltip>
       <p class="center title q-pt-xs">{{ title | truncate(26, "...") }}</p>
-      <p class="float-left q-pl-sm">{{ averagePass }}% Avg.</p>
+      <p class="float-left q-pl-sm">{{ averagePass.toFixed(2) }}% Avg.</p>
       <p class="float-right q-pr-sm">{{ formatNumber(playTimes) }} Plays</p>
     </div>
   </div>

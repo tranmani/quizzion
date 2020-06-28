@@ -55,14 +55,10 @@ export default {
         })
     },
     submitAnswer(questionName, answerName, userXCSRFToken) {
-        let varsInit = {}
-        varsInit[questionName] = answerName
+        console.log("Submit answer for question name", questionName)
         return AxiosClient({
             method: 'put',
-            url: `/v51/data`,
-            body: {
-                vars: varsInit
-            },
+            url: `/v51/data?vars={"${questionName}": "${answerName}"}`,
             headers: { 'X-CSRFToken': userXCSRFToken }
         })
     }

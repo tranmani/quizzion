@@ -368,6 +368,9 @@ export default {
       this.$store.dispatch("waitingRoom/setInvitationCode", {
         invitationCode: this.activeQuiz.code
       });
+      this.$store.dispatch("waitingRoom/setThumbnailUrl", {
+        thumbnailUrl: this.activeQuiz.thumbnailUrl
+      });
 
       this.$router.push({ name: "waitingroom" });
     },

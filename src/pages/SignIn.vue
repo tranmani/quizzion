@@ -14,6 +14,7 @@
                 <q-input
                   outlined
                   dense
+                  autofocus
                   v-model="credentials.username"
                   @keyup.enter="
                     hashPassword();

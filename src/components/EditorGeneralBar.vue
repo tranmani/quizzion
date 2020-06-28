@@ -4,6 +4,7 @@
     <q-form @submit="submit" class="q-gutter-md">
       <q-input
         filled
+        autofocus
         v-model="quiz.title"
         label="Title"
         lazy-rules

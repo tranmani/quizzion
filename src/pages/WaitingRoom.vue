@@ -128,6 +128,8 @@ import UserRepository from "../remote/user/UserRepository";
 import ChatComponent from "../components/Chat";
 import SocketCommunicator from "../remote/socket/socket_communicator";
 import FileRepository from "../remote/files/FileRepository";
+import QuizFormRepository from "../remote/quiz/QuizFormRepository";
+import QuizTemplateRepository from "../remote/quiz/QuizTemplateRepository";
 
 export default {
   components: {
@@ -244,6 +246,11 @@ export default {
       if (this.modPage) {
         console.log("Mod page so nothing happens");
         this.socketCommunicator.emit("check_status", {});
+
+        this.socketCommunicator.on("finish_quiz_data_response", response => {
+          console.log("RECEIVED FINISH DATA", response)
+          this.updateTemplateContent(response.data[response.data.length-1].data.userScore, response.data[response.data.length-1].data.formHash)
+        });
       } else {
         this.navigateToCompleteQuiz(response.questions);
       }
@@ -332,6 +339,7 @@ export default {
         params: {
           title: this.getTitle.title,
           questions: questionsResponse,
+          userHash: this.$route.params.hash,
           userToken: this.$route.params.tkn,
           userName: this.$route.params.usrname,
           userAvatarUrl: this.$route.params.avatarUrl,
@@ -370,6 +378,41 @@ export default {
         sender: request.sender,
         text: request.text
       });
+    },
+    updateTemplateContent(score, fh) {
+      let tn = "";
+      console.log("DO WE GET IT HERE", fh)
+      QuizFormRepository.getQuizForm(fh, this.token).then(
+        response => {
+          tn = response.data.form[0].tn;
+
+          QuizTemplateRepository.getTemplateContent(tn, this.token).then(
+            response => {
+              console.log("template content: ", response.data.content.content);
+
+              let content = JSON.parse(response.data.content.content);
+              content.properties.playTimes += 1;
+              let userScore = score;
+              content.properties.averagePass =
+                (content.properties.averagePass *
+                  (content.properties.playTimes - 1) +
+                  userScore) /
+                content.properties.playTimes;
+
+              console.log("after edit template content: ", content);
+
+              QuizTemplateRepository.updateTemplateContent(
+                tn,
+                "json",
+                content,
+                this.token
+              ).then(response => {
+                console.log("template content: ", response);
+              });
+            }
+          );
+        }
+      );
     }
   }
 };
@@ -380,7 +423,8 @@ export default {
 }
 .user-list {
   // was - 150px before changed since the bar was constantly showing and it was not the one we needed
-  height: calc(98% - 205px);
+  // 112px comes from the chat and lifted start quiz buttons
+  height: calc(98% - 205px - 112px);
   border-right: 1px solid #ddd;
 }
 .title {

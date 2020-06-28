@@ -203,7 +203,9 @@ export default {
         },
         plotOptions: {
           pie: {
-            colors: [ this.answerData[0].color, this.answerData[1].color, this.answerData[2].color, this.answerData[3].color],
+            // this could be coming like [ this.answerData[0].color, this.answerData[1].color, this.answerData[2].color, this.answerData[3].color]
+            // but this way we don't handle true/false question and passing a list variable instead doesn't behave properly
+            colors: ["#D739BD", "#6FCF97", "#EB5757", "#EBEE47"],
             allowPointSelect: true,
             cursor: 'pointer',
             size: '100%',

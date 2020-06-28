@@ -6,6 +6,7 @@
       dense
       clearable
       lazy-rules
+      autofocus
       bg-color="grey-4"
       label="Invite Code..."
       ref="code"
@@ -49,7 +50,7 @@
           :loading="loading"
           icon="arrow_right_alt"
           dense
-          flat
+          :flat="disabledBtn"
           rounded
           @click="goToQuizz"
         />
@@ -102,10 +103,14 @@ export default {
     ...mapGetters("authLogin", ["token"])
   },
   mounted() {
-    this.socket = io("https://socket-example-huy.herokuapp.com", {
+    const code = Math.random()
+      .toString(36)
+      .substring(2);
+
+    this.socket = io("https://3.212.180.89:3000/", {
       autoConnect: false,
       query: {
-        token: 0
+        token: code
       },
       transport: ["websocket"]
     });
@@ -172,7 +177,8 @@ export default {
               tkn: this.userToken,
               usrname: this.userName,
               avatarUrl: this.userAvatarUrl,
-              frmHash: this.frmHash
+              frmHash: this.frmHash,
+              hash: this.userHash
             }
           });
         } else {

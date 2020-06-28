@@ -619,6 +619,9 @@ export default {
       this.$router.push({ path: "/dashboard" });
       this.emptyQuizAndQuestions();
     }
+  },
+  beforeDestroy() {
+    this.$q.loading.hide();
   }
 };
 </script>
