@@ -107,7 +107,7 @@ export default {
       .toString(36)
       .substring(2);
 
-    this.socket = io("https://3.212.180.89:3000/", {
+    this.socket = io("https://socket-example-huy.herokuapp.com", {
       autoConnect: false,
       query: {
         token: code
