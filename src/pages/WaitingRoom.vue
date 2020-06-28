@@ -45,6 +45,8 @@
       @click.capture="drawerClick"
       :breakpoint="200"
       bordered
+      no-swipe-close
+      no-swipe-backdrop
       :mini-to-overlay="mobile"
     >
       <template v-slot:mini>
