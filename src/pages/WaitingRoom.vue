@@ -45,9 +45,6 @@
       @click.capture="drawerClick"
       :breakpoint="200"
       bordered
-      persistent
-      no-swipe-close
-      no-swipe-backdrop
       :mini-to-overlay="mobile"
     >
       <template v-slot:mini>
@@ -194,7 +191,6 @@ export default {
       this.miniState = false;
       this.mobile = true;
     }
-    this.width = window.innerWidth;
 
     if (this.socketCommunicator == undefined) return;
 
@@ -365,7 +361,6 @@ export default {
         this.miniState = false;
         this.mobile = false;
       }
-      this.width = window.innerWidth;
     },
     beforeUnload() {
       this.socketCommunicator.socket.removeAllListeners();
