@@ -18,7 +18,6 @@ Vue.use(VueDraggable);
  */
 
 const Router = new VueRouter({
-  mode: "history",
   scrollBehavior: () => ({
     x: 0,
     y: 0
@@ -36,7 +35,7 @@ Router.beforeEach((to, from, next) => {
   let currentUser = false // cannot get currentUser of undefined
   let requiresAuth = to.matched.some(record => record.meta.requiresAuth)
 
-  if (Store.state.token != null) {
+  if(Store.state.token != null){
     currentUser = true
   }
 
@@ -47,6 +46,6 @@ Router.beforeEach((to, from, next) => {
   } else next()
 })
 
-export default function ( /* { store, ssrContext } */) {
+export default function ( /* { store, ssrContext } */ ) {
   return Router
 }

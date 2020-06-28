@@ -400,7 +400,7 @@ export default {
           this.allAnsrData[this.position][index].chosen = true;
           this.selectedAnsrIndex = index;
           if (this.allAnsrData[this.position][index].correct)
-            this.pointsToReceive = 10 + this.timerNow;
+            this.pointsToReceive = 10;
           else this.pointsToReceive = 0;
         } else {
           //this.allAnsrData[this.position][index].results = 0;
@@ -423,15 +423,18 @@ export default {
     modifyUserScore: function() {
       for (let userIndex = 0; userIndex < this.usrData.length; userIndex++) {
         if (this.userHash == this.usrData[userIndex].userHash) {
-          console.log(
-            this.usrData[userIndex].username,
-            " received ",
-            this.pointsToReceive,
-            " points"
-          );
+          if (this.pointsToReceive > 0) {
+            this.correctAnswerCount++;
+            this.pointsToReceive += this.timerNow
+            console.log(
+              this.usrData[userIndex].username,
+              " received ",
+              this.pointsToReceive,
+              " points"
+            );
+          }
           this.usrData[userIndex].score += this.pointsToReceive;
           this.totalScore = this.usrData[userIndex].score;
-          if (this.pointsToReceive > 0) this.correctAnswerCount++;
         }
       }
     },

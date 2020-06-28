@@ -365,11 +365,11 @@ export default {
             this.token
           )
             .then(res2 => {
+              // reload dashboard
+              this.setLoaded("false");
               this.questions.forEach(question => {
                 this.saveStateQuestion(question);
                 this.editQuestion2();
-                // reload dashboard
-                this.setLoaded("false");
               });
               this.$q.notify({
                 type: "positive",

@@ -5,10 +5,10 @@
     @mouseleave="hover = false"
   >
     <div class="row icon-center bg-box" :class="`theme-${theme}`">
-      <q-img v-if="thumbnailUrl" :src="thumbnailUrl">
+      <q-img v-if="thumbnailUrl" :src="thumbnailUrl" style="height: 100%; width: 100%">
         <transition name="fade">
           <div v-if="hover || this.width < 600" class="absolute-full flex flex-center">
-            <div class="q-gutter-sm cursor-pointer">
+            <div class="q-gutter-sm cursor-pointer thumbnail-btn">
               <q-icon name="delete_outline" size="35px" @click="deleteConfirm">
                 <q-tooltip
                   anchor="top middle"
@@ -246,6 +246,9 @@ p {
   font-weight: bold;
   font-size: 1.1em;
   overflow: hidden;
+}
+.thumbnail-btn {
+  transform: translateY(-20%);
 }
 .fade-enter-active,
 .fade-leave-active {
