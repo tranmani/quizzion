@@ -45,6 +45,7 @@
       @click.capture="drawerClick"
       :breakpoint="200"
       bordered
+      persistent
       no-swipe-close
       no-swipe-backdrop
       :mini-to-overlay="mobile"
