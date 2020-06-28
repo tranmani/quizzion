@@ -166,7 +166,7 @@ export default {
       miniState: false,
       drawer: false,
       width: 0,
-      mobile: false,
+      mobile: true,
       sender: {
         uh: "",
         username: "",
@@ -188,11 +188,11 @@ export default {
     window.addEventListener("beforeunload", this.beforeUnload);
 
     if (window.innerWidth <= 600) {
-      this.miniState = true;
+      this.miniState = false;
       this.mobile = true;
     } else {
       this.miniState = false;
-      this.mobile = false;
+      this.mobile = true;
     }
     this.width = window.innerWidth;
 
@@ -359,7 +359,7 @@ export default {
     },
     onResize() {
       if (window.innerWidth <= 600) {
-        this.miniState = true;
+        this.miniState = false;
         this.mobile = true;
       } else {
         this.miniState = false;
