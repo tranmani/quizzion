@@ -96,6 +96,7 @@ export default {
       userAvatarUrl: "",
       frmHash: "",
       thumbnailUrl: "",
+      duration: 0,
       loading: false
     };
   },
@@ -135,6 +136,7 @@ export default {
         this.userAvatarUrl = response.user.avatarUrl;
         this.frmHash = response.quiz.formHash;
         this.thumbnailUrl = response.quiz.thumbnail;
+        this.duration = response.quiz.duration;
         console.log("User Hash: " + this.userHash);
         console.log("User Token: " + this.userToken);
         console.log("User Name: " + this.userName);
@@ -169,6 +171,9 @@ export default {
           this.$store.dispatch("waitingRoom/setAvatarUrl", {
             avatarUrl: this.userAvatarUrl
           });
+          this.$store.dispatch("waitingRoom/setDuration", {
+            duration: this.duration
+          });
 
           this.$store.dispatch("authLogin/attemptUser", this.userHash);
           this.$router.push({
@@ -196,6 +201,9 @@ export default {
           });
           this.$store.dispatch("waitingRoom/setAvatarUrl", {
             avatarUrl: this.userAvatarUrl
+          });
+          this.$store.dispatch("waitingRoom/setDuration", {
+            duration: this.duration
           });
 
           this.$router.push({

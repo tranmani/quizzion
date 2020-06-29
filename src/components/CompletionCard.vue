@@ -121,6 +121,10 @@ export default {
         typeof this.$route.params.formHash == "undefined"
           ? ""
           : this.$route.params.formHash,
+      duration: 
+        typeof this.$route.params.duration == "undefined"
+          ? 1
+          : this.$route.params.duration,
       currentAnswerGroup: [],
       selectedAnsr: "",
       selectedAnsrIndex: -1,
@@ -217,7 +221,9 @@ export default {
 
     this.socketCommunicator.on("quiz_timer_response", response => {
       if (response.running) {
-        this.timerNow = response.tick;
+        console.log(response, "Total time", this.duration)
+        this.timerNow = Math.floor((response.tick * 100) / this.duration);
+        console.log("percentage timer", this.timerNow)
       }
     });
   },

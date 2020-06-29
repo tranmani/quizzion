@@ -146,7 +146,8 @@ export default {
       "getThumbnailUrl",
       "getUserHash",
       "getUsername",
-      "getAvatarUrl"
+      "getAvatarUrl",
+      "getDuration"
     ]),
     ...mapGetters("authLogin", ["token", "userHash", "userObject", "avatar"])
   },
@@ -162,8 +163,7 @@ export default {
       questions: null,
       miniState: false,
       drawer: false,
-      width: 0,
-      mobile: true,
+      mobile: false,
       sender: {
         uh: "",
         username: "",
@@ -185,11 +185,11 @@ export default {
     window.addEventListener("beforeunload", this.beforeUnload);
 
     if (window.innerWidth <= 600) {
-      this.miniState = false;
+      this.miniState = true;
       this.mobile = true;
     } else {
       this.miniState = false;
-      this.mobile = true;
+      this.mobile = false;
     }
 
     if (this.socketCommunicator == undefined) return;
@@ -247,8 +247,11 @@ export default {
         this.socketCommunicator.emit("check_status", {});
 
         this.socketCommunicator.on("finish_quiz_data_response", response => {
-          console.log("RECEIVED FINISH DATA", response)
-          this.updateTemplateContent(response.data[response.data.length-1].data.userScore, response.data[response.data.length-1].data.formHash)
+          console.log("RECEIVED FINISH DATA", response);
+          this.updateTemplateContent(
+            response.data[response.data.length - 1].data.userScore,
+            response.data[response.data.length - 1].data.formHash
+          );
         });
       } else {
         this.navigateToCompleteQuiz(response.questions);
@@ -343,7 +346,8 @@ export default {
           userName: this.$route.params.usrname,
           userAvatarUrl: this.$route.params.avatarUrl,
           formHash: this.$route.params.frmHash,
-          participants: this.participants
+          participants: this.participants,
+          duration: this.getDuration
         }
       });
     },
@@ -379,38 +383,36 @@ export default {
     },
     updateTemplateContent(score, fh) {
       let tn = "";
-      console.log("DO WE GET IT HERE", fh)
-      QuizFormRepository.getQuizForm(fh, this.token).then(
-        response => {
-          tn = response.data.form[0].tn;
+      console.log("DO WE GET IT HERE", fh);
+      QuizFormRepository.getQuizForm(fh, this.token).then(response => {
+        tn = response.data.form[0].tn;
 
-          QuizTemplateRepository.getTemplateContent(tn, this.token).then(
-            response => {
-              console.log("template content: ", response.data.content.content);
+        QuizTemplateRepository.getTemplateContent(tn, this.token).then(
+          response => {
+            console.log("template content: ", response.data.content.content);
 
-              let content = JSON.parse(response.data.content.content);
-              content.properties.playTimes += 1;
-              let userScore = score;
-              content.properties.averagePass =
-                (content.properties.averagePass *
-                  (content.properties.playTimes - 1) +
-                  userScore) /
-                content.properties.playTimes;
+            let content = JSON.parse(response.data.content.content);
+            content.properties.playTimes += 1;
+            let userScore = score;
+            content.properties.averagePass =
+              (content.properties.averagePass *
+                (content.properties.playTimes - 1) +
+                userScore) /
+              content.properties.playTimes;
 
-              console.log("after edit template content: ", content);
+            console.log("after edit template content: ", content);
 
-              QuizTemplateRepository.updateTemplateContent(
-                tn,
-                "json",
-                content,
-                this.token
-              ).then(response => {
-                console.log("template content: ", response);
-              });
-            }
-          );
-        }
-      );
+            QuizTemplateRepository.updateTemplateContent(
+              tn,
+              "json",
+              content,
+              this.token
+            ).then(response => {
+              console.log("template content: ", response);
+            });
+          }
+        );
+      });
     }
   }
 };

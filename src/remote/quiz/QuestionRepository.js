@@ -4,6 +4,7 @@ const endpoint = '/v51/var';
 
 export default {
     postQuestion(question, xcsrfToken) {
+        console.log("QUESTION: ", question);
         return AxiosClient({
             method: 'post',
             url: `${endpoint}`,

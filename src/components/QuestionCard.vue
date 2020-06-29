@@ -9,6 +9,7 @@
                 <i class="fa fa-edit" v-on:click="edit(question.id)"></i>
                 <i class="fa fa-arrows"></i>
             </div>
+            <div class="video-wrapper" v-html="question.video"></div>
         </q-card-section>
         <q-separator ></q-separator>
         <!-- Edit mode body section -->
@@ -44,7 +45,7 @@ export default {
           this.$emit("selected", answer);
       },
       edit:function(questionId) {
-          this.$emit("edit", this.question.name);
+          this.$emit("edit", this.question.position);
       },
       remove:function(questionId) {
           this.$emit("remove", this.question.position);

@@ -69,7 +69,6 @@ export default {
   },
   created() {
     Object.assign(this.question, this.getQuestion);
-    console.log(this.question);
     this.question.answers.sort((a, b) => (a.position > b.position) ? 1 : -1)
     this.currentPlace = this.getPositionString(this.question.answers.length+1);
   },

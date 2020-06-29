@@ -37,7 +37,7 @@
         <EditorQuestionBar
           v-if="editorTitle === 'Question'"
           @cancel="backToGeneral"
-          @submitQuestion="editQuestion2"
+          @submitQuestion="editQuestion"
         ></EditorQuestionBar>
       </div>
     </div>
@@ -151,13 +151,13 @@ export default {
                     });
 
                     this.questions.push(quest);
+                    this.questions.sort((a, b) => (a.position > b.position ? 1 : -1));
                     this.currentPosition++;
                   }
                 );
               }
             );
           });
-          this.questions.sort((a, b) => (a.position > b.position ? 1 : -1));
           this.loaded = true;
           this.$q.loading.hide();
         });
@@ -177,9 +177,9 @@ export default {
     ]),
     ...mapActions("quizzes", ["setLoaded"]),
 
-    loadQuestion(name) {
+    loadQuestion(position) {
       this.questions.forEach(question => {
-        if (question.name === name) {
+        if (question.position === position) {
           this.saveStateQuestion(question);
           this.editorTitle = "Question";
         }
@@ -193,6 +193,7 @@ export default {
       var num = this.currentPosition++;
       var q = {
         label: "Add text",
+        vh: "",
         position: num,
         vartype: "item",
         datatype: "varoption",
@@ -234,6 +235,7 @@ export default {
     },
 
     reordered(event, group) {
+      console.log("old: ", this.questions);
       const reorderedItems = group.filter(
         item => event.detail.ids.map(Number).indexOf(item.position) >= 0
       );
@@ -253,6 +255,7 @@ export default {
 
       this.questions[originPos] = temp2;
       this.questions[event.detail.index] = temp;
+      console.log("new: ", this.questions)
     },
 
     submitQuiz() {
@@ -294,11 +297,13 @@ export default {
             res.data.tn,
             this.token
           ).then(res2 => {
+            console.log(this.questions);
             this.questions.forEach(question => {
               var questionAdd = {
                 label: question.label,
                 vartype: "item",
                 datatype: "varoption",
+                position: question.position,
                 isNew: true
               };
               var position = this.count++;
@@ -369,7 +374,9 @@ export default {
               this.setLoaded("false");
               this.questions.forEach(question => {
                 this.saveStateQuestion(question);
-                this.editQuestion2();
+                this.editQuestion();
+                // reload dashboard
+                this.setLoaded("false");
               });
               this.$q.notify({
                 type: "positive",
@@ -392,6 +399,8 @@ export default {
     },
 
     saveQuestion(question, templateNumber, quizContent) {
+      console.log("saving: ", question.position);
+      var temp = question;
       question = {
         label: question.label,
         vartype: question.vartype,
@@ -403,6 +412,8 @@ export default {
       QuestionRepository.postQuestion(question, this.token)
         .then(res4 => {
           quizContent.questions.push(res4.data.vh);
+          temp = res4.data.vh;
+          this.saveQuestionToList(temp);
           QuizTemplateRepository.putQuestionInQuizTemplate(
             "json",
             templateNumber,
@@ -430,10 +441,10 @@ export default {
         });
     },
 
-    editQuestion2() {
+    editQuestion() {
       var question = this.getQuestion;
       this.saveQuestionToList(question);
-      if (this.loadedTemplateHash != "" && question.vh) {
+      if (this.loadedTemplateHash != "" && question.vh != "") {
         question = {
           label: question.label,
           vartype: "item",
@@ -444,7 +455,7 @@ export default {
           answers: question.answers
         };
 
-        if (question.vh) {
+        if (question.vh != "") {
           QuestionRepository.updateQuestion(question, this.token).then(res => {
             question.answers.forEach(answer => {
               if (answer.isCorrect) answer.value = 5;
@@ -502,12 +513,14 @@ export default {
 
     saveQuestionToList(question) {
       var i = 0;
+      console.log("q: ", question);
       this.questions.forEach(q => {
         if (q.position === question.position) {
           this.questions[i] = question;
         }
         i++;
       });
+      console.log("qs: ", this.questions);
     },
 
     updateListing(question) {
@@ -516,22 +529,6 @@ export default {
           q = question;
         }
       });
-    },
-
-    editQuestion(vogh, question) {
-      QuestionRepository.updateQuestion(question, this.token)
-        .then(res => {
-          this.$q.notify({
-            type: "positive",
-            message: "Question has been edited!"
-          });
-        })
-        .catch(err => {
-          this.$q.notify({
-            type: "negative",
-            message: "Could not edit question! " + err
-          });
-        });
     },
 
     saveAnswer(answer, vogh, token, edit) {

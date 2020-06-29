@@ -9,6 +9,7 @@ export function addQuestionToQuiz(state, payload) {
 
 export function saveStateQuestion(state, payload) {
     state.question = Object.assign({}, state.question, payload)
+    console.log("NEW QUESTION: ", state.question);
 }
 
 export function emptyQuizAndQuestions(state) {

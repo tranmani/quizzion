@@ -9,7 +9,8 @@ export default {
             thumbnailUrl: '',
             userHash: '',
             username: '',
-            avatarUrl: ''
+            avatarUrl: '',
+            duration: ''
         }
     }),
 
@@ -38,6 +39,10 @@ export default {
 
         avatarUrl(state, avatarUrl) {
             state.waitingRoom.avatarUrl = avatarUrl;
+        },
+
+        duration(state, duration) {
+            state.waitingRoom.duration = duration;
         }
     },
 
@@ -67,6 +72,10 @@ export default {
 
         setAvatarUrl({ commit }, avatarUrl) {
             commit('avatarUrl', avatarUrl);
+        },
+
+        setDuration({ commit }, duration) {
+            commit('duration', duration);
         }
     },
 
@@ -96,6 +105,10 @@ export default {
 
         getAvatarUrl(state) {
             return state.waitingRoom.avatarUrl.avatarUrl;
+        },
+
+        getDuration(state) {
+            return state.waitingRoom.duration.duration;
         }
     }
 }

@@ -19,12 +19,11 @@
     </q-dialog>
 
     <h5 class="q-pl-md">Created quizzes:</h5>
-    <q-btn @click="createQuiz">Create new hardcoded Template and Form</q-btn>
     <div v-if="!dashboardLoaded" class="row">
       <CreatedQuizSkeleton v-for="index in 6" :key="index" />
     </div>
     <div v-if="dashboardLoaded">
-      <div class="row">
+      <div class="row box">
         <CreatedQuiz
           v-for="quiz in quizzesForDisplay"
           :key="quiz.id"
@@ -267,55 +266,6 @@ export default {
       this.deleteQuiz(id);
       this.sortQuizzes(this.sortState);
     },
-    createQuiz() {
-      // will delete this method in production
-      let templateContent = {
-        type: "quiz",
-        properties: {
-          label: "label in content property",
-          playTimes: 75,
-          averagePass: 62,
-          theme: 2,
-          timeLimit: 60
-        },
-        questions: []
-      };
-      QuizTemplateRepository.postQuizTemplate(
-        "form_json",
-        "survey",
-        "active",
-        "New quiz title",
-        "Some description",
-        "JSON",
-        templateContent,
-        this.token
-      )
-        .then(response => {
-          QuizFormRepository.postQuizForm(
-            "new quiz title",
-            "survey",
-            response.data.tn,
-            this.token
-          )
-            .then(responseForm => {
-              this.getAllForms();
-            })
-            .catch(error => {
-              this.$q.notify({
-                icon: "error",
-                type: "negative",
-                message: `Failed to create new form`
-              });
-            });
-        })
-        .catch(error => {
-          this.$q.notify({
-            icon: "error",
-            type: "negative",
-            message: `Failed to create new template`
-          });
-        });
-    },
     getUser(token, uh) {
       Authenticator.getUserByToken(token)
         .then(response => {
@@ -387,5 +337,10 @@ export default {
 h5 {
   color: $primary;
   margin: 70px 0 10px 0;
+}
+@media only screen and (max-width: 600px) {
+  .box {
+    justify-content: center;
+  }
 }
 </style>
